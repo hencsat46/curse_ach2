@@ -117,6 +117,22 @@ SELECT * FROM pg_roles;
 
 CREATE ROLE administrator LOGIN;
 
+CREATE OR REPLACE FUNCTION strong_insert(user_login TEXT, passwd TEXT, user_role TEXT)
+RETURNS INT
+LANGUAGE plpgsql AS $$
+BEGIN
+	IF (SELECT COUNT(*) FROM users WHERE username = user_login) > 0 THEN
+		RETURN 0;
+	END IF;
+	CALL insert_user(user_login, passwd, user_role);
+	RETURN 1;
+END; $$
+
+SELECT * FROM strong_insert('яяя', '123', 'asdf');
 
 GRANT SELECT ON archive TO user_1;
 GRANT SELECT ON publisher TO user_1;
+
+SELECT * FROM users;
+
+

@@ -24,16 +24,23 @@ public:
 private:
     Ui::Widget *ui;
     QStandardItemModel *model;
-
+    QSqlDatabase db;
     QString connection_name = "new_connection";
-    bool status;
+    void close_db();
+    bool start_db_user();
+    bool start_db_teacher();
+    bool start_db_admin();
+    bool start_db_superuser();
+
 
 public slots:
     void show_table();
     void change_widget();
     void login();
-    //void registration();
+    void registration();
     void box_changed();
+    void reg_link();
+    void auth_link();
 
 };
 #endif // WIDGET_H
