@@ -5,6 +5,7 @@ Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget) {
     ui->setupUi(this);
     connect(ui->w_show_db, SIGNAL(clicked()), this, SLOT(show_table()));
     connect(ui->sm_login_button, SIGNAL(clicked()), this, SLOT(login()));
+    connect(ui->r_box_role, SIGNAL(currentIndexChanged()), this, SLOT(box_changed()));
     QSqlDatabase db = QSqlDatabase::addDatabase("QPSQL");
 
     db.setHostName("localhost");
@@ -14,6 +15,11 @@ Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget) {
     status = db.open();
 
     qDebug() << this->ui->stackedWidget->currentIndex();
+
+    if (ui->r_box_role->currentIndex() == 0) {
+        ui->r_code_edit->hide();
+        ui->r_code_label->hide();
+    }
 
 }
 
@@ -45,4 +51,8 @@ void Widget::login() {
     if (username == "ilya" && password == "forstudy") {
         ui->stackedWidget->setCurrentIndex(0);
     }
+}
+
+void Widget::box_changed() {
+    qDebug() << "Index changed\n";
 }

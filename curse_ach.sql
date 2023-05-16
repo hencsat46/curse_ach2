@@ -93,3 +93,30 @@ SELECT * FROM publisher;
 SELECT * FROM teacher;
 
 SELECT rolname FROM pg_roles;
+
+CREATE TABLE users (
+
+	username TEXT,
+	passw TEXT,
+	user_role TEXT
+
+);
+
+CREATE OR REPLACE PROCEDURE insert_user(user_login TEXT, passwd TEXT, user_role TEXT)
+LANGUAGE sql AS $$
+	INSERT INTO users(username, passw, user_role) VALUES (user_login, passwd, user_role);
+$$
+
+CALL insert_user('илья', '1234', 'user_1');
+
+DROP PROCEDURE instert_user;
+
+CREATE ROLE user_1 LOGIN;
+DROP ROLE user_1;
+SELECT * FROM pg_roles;
+
+CREATE ROLE administrator LOGIN;
+
+
+GRANT SELECT ON archive TO user_1;
+GRANT SELECT ON publisher TO user_1;

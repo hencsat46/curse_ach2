@@ -32,5 +32,8 @@ public slots:
     void show_table();
     void change_widget();
     void login();
+    //void registration();
+    void box_changed();
+
 };
 #endif // WIDGET_H
