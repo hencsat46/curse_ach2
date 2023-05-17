@@ -9,6 +9,7 @@
 #include <QSqlQueryModel>
 #include <QSqlQuery>
 #include <QTableWidget>
+#include <QLabel>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Widget; }
@@ -20,17 +21,17 @@ class Widget : public QWidget {
 public:
     Widget(QWidget *parent = nullptr);
     ~Widget();
+    void set_color(QLabel *label, QColor color);
 
 private:
     Ui::Widget *ui;
     QStandardItemModel *model;
-    QSqlDatabase db;
-    QString connection_name = "new_connection";
-    void close_db();
+    //QSqlDatabase db;
+    void close_db(QString connection_name);
     bool start_db_user();
     bool start_db_teacher();
     bool start_db_admin();
-    bool start_db_superuser();
+    bool start_db_superuser(QSqlDatabase db);
 
 
 public slots:
