@@ -11,17 +11,12 @@ Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget) {
     connect(ui->r_registration_button, SIGNAL(clicked()), this, SLOT(registration()));
     set_color(ui->r_wcode_label, Qt::red);
     set_color(ui->r_wdata_label, Qt::red);
+    set_color(ui->sm_wdata_label, Qt::red);
+    ui->r_box_role->setCurrentIndex(0);
     ui->r_wcode_label->hide();
     ui->r_wdata_label->hide();
-
-
-
-    qDebug() << this->ui->stackedWidget->currentIndex();
-    ui->r_box_role->setCurrentIndex(0);
-    ui->r_code_label_admin->hide();
-    ui->r_code_label_teacher->hide();
-    ui->r_code_edit->hide();
-
+    ui->r_code_widget->hide();
+    ui->sm_wdata_label->hide();
 
 }
 

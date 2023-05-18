@@ -26,12 +26,13 @@ public:
 private:
     Ui::Widget *ui;
     QStandardItemModel *model;
-    //QSqlDatabase db;
+    QString role;
     void close_db(QString connection_name);
     bool start_db_user();
     bool start_db_teacher();
     bool start_db_admin();
     bool start_db_superuser(QSqlDatabase db);
+
 
 
 public slots:

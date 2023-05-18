@@ -15,20 +15,16 @@ void Widget::registration() {
 
     if (username.isEmpty() || password.isEmpty()) {
         ui->r_wdata_label->show();
+        ui->r_wcode_label->hide();
         return;
     }
-
-
 
     {
         QSqlDatabase db = QSqlDatabase::addDatabase("QPSQL", "superuser_connection");
         bool status = start_db_superuser(db);
         QSqlQuery query = QSqlQuery(db);
-        qDebug() << status;
+        //qDebug() << status;
         if (status) {
-            qDebug() << "status open\n";
-
-
 
             switch(role) {
                 case 0:
@@ -41,14 +37,16 @@ void Widget::registration() {
                         qDebug() << "teacher added\n";
                     } else {
                         ui->r_wcode_label->show();
+                        ui->r_wdata_label->hide();
                     }
                     break;
                 case 2:
                     if (code == "4321") {
-                        qDebug() << db.isOpen();
                         query.exec("SELECT * FROM strong_insert(\'" + username + "\', \'" + password + "\', \'admin\');");
+                        qDebug() << "admin added\n";
                     } else {
                         ui->r_wcode_label->show();
+                        ui->r_wdata_label->hide();
                     }
                     break;
             }
@@ -63,23 +61,14 @@ void Widget::registration() {
 }
 
 void Widget::box_changed() {
-    switch(ui->r_box_role->currentIndex()) {
-        case 0:
-            ui->r_code_label_admin->hide();
-            ui->r_code_label_teacher->hide();
-            ui->r_code_edit->hide();
-            break;
-        case 1:
-            ui->r_code_label_admin->hide();
-            ui->r_code_label_teacher->show();
-            ui->r_code_edit->show();
-            break;
-        case 2:
-            ui->r_code_label_admin->show();
-            ui->r_code_label_teacher->hide();
-            ui->r_code_edit->show();
-            break;
+    if (ui->r_box_role->currentIndex() != 0) {
+        ui->r_input_widget->move(300, 200);
+        ui->r_code_widget->show();
+        return;
     }
+
+    ui->r_input_widget->move(300, 160);
+    ui->r_code_widget->hide();
 }
 
 bool Widget::start_db_superuser(QSqlDatabase db) {
