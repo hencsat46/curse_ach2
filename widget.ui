@@ -1182,8 +1182,13 @@
        <string>Преподаватель</string>
       </property>
      </item>
+     <item>
+      <property name="text">
+       <string>Администратор</string>
+      </property>
+     </item>
     </widget>
-    <widget class="QLabel" name="r_code_label">
+    <widget class="QLabel" name="r_code_label_teacher">
      <property name="geometry">
       <rect>
        <x>560</x>
@@ -1711,6 +1716,28 @@
      </property>
      <property name="text">
       <string>Некоректные данные</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QLabel" name="r_code_label_admin">
+     <property name="geometry">
+      <rect>
+       <x>560</x>
+       <y>200</y>
+       <width>161</width>
+       <height>71</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Cantarell</family>
+       <pointsize>15</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Введите код администратора</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>

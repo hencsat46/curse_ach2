@@ -17,11 +17,11 @@ Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget) {
 
 
     qDebug() << this->ui->stackedWidget->currentIndex();
+    ui->r_box_role->setCurrentIndex(0);
+    ui->r_code_label_admin->hide();
+    ui->r_code_label_teacher->hide();
+    ui->r_code_edit->hide();
 
-    if (ui->r_box_role->currentIndex() == 0) {
-        ui->r_code_edit->hide();
-        ui->r_code_label->hide();
-    }
 
 }
 
