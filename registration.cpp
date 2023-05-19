@@ -9,6 +9,8 @@ void Widget::registration() {
 
     QString username = ui->r_login_edit->text();
     QString password = ui->r_password_edit->text();
+    QString name = ui->r_name_edit->text();
+    QString surname = ui->r_surname_edit->text();
     QString code = ui->r_code_edit->text();
     int role = ui->r_box_role->currentIndex();
 
@@ -46,6 +48,10 @@ void Widget::registration() {
                     qDebug() << "admin added\n";
                     break;
             }
+
+            if (ui->r_box_role->currentIndex() == 1) {
+
+            }
         }
     }
 
@@ -60,11 +66,20 @@ void Widget::box_changed() {
     if (ui->r_box_role->currentIndex() != 0) {
         ui->r_input_widget->move(300, 200);
         ui->r_code_widget->show();
+        if (ui->r_box_role->currentIndex() == 1) {
+            ui->r_input_widget->move(300, 220);
+            ui->r_faculty_widget->show();
+            return;
+        }
+        ui->r_faculty_widget->hide();
         return;
+
     }
+
 
     ui->r_input_widget->move(300, 160);
     ui->r_code_widget->hide();
+    ui->r_faculty_widget->hide();
 }
 
 bool Widget::start_db_superuser(QSqlDatabase db) {

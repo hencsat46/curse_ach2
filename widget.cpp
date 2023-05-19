@@ -18,6 +18,7 @@ Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget) {
     ui->r_wdata_label->hide();
     ui->r_code_widget->hide();
     ui->sm_wdata_label->hide();
+    ui->r_faculty_widget->hide();
     ui->stackedWidget->setCurrentIndex(1);
     ui->sm_password_edit->setEchoMode(QLineEdit::Password);
     ui->r_password_edit->setEchoMode(QLineEdit::Password);

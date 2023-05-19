@@ -1,9 +1,10 @@
-
+DROP TABLE teacher;
 
 CREATE TABLE teacher (
 
 	teacher_id SERIAL PRIMARY KEY,
 	teacher_name TEXT,
+	teacher_surname TEXT,
 	teacher_faculty INT,
 	teacher_last_doc INT,
 	FOREIGN KEY (teacher_faculty) REFERENCES faculty(faculty_id),
@@ -11,6 +12,38 @@ CREATE TABLE teacher (
 
 );
 
+DROP PROCEDURE add_teacher;
+
+DROP FUNCTION check_faculty;
+
+CREATE OR REPLACE FUNCTION check_faculty(t_name TEXT, t_surname TEXT, t_faculty TEXT)
+RETURNS INT
+LANGUAGE plpgsql AS $$
+BEGIN
+	IF (SELECT faculty_id FROM faculty WHERE faculty_name = t_faculty) IS NOT NULL THEN
+		CALL add_teacher(t_name, t_surname, t_faculty);
+		RETURN 0;
+	END IF;
+	RETURN 1;
+END; $$
+
+SELECT * FROM check_faculty('Виктор', 'Корнеплод', 'йоу');
+SELECT * FROM faculty;
+SELECT * FROM teacher;
+
+CREATE OR REPLACE PROCEDURE add_teacher(t_name TEXT, t_surname TEXT, t_faculty TEXT)
+LANGUAGE plpgsql AS $$
+BEGIN
+	INSERT INTO teacher(teacher_name, teacher_surname, teacher_faculty) VALUES (t_name, t_surname, (SELECT faculty_id FROM faculty WHERE faculty_name = t_faculty));
+END; $$
+SELECT *, pg_tablespace_location(oid) FROM pg_tablespace;
+CALL add_teacher('a', 'a', 'a');
+
+SELECT * FROM teacher;
+
+SELECT * FROM teacher;
+SELECT * FROM faculty;
+SELECT faculty_id FROM faculty WHERE faculty_name = 't_faculty';
 DROP TABLE teacher CASCADE;
 
 CREATE TABLE docum_plan (
@@ -18,7 +51,7 @@ CREATE TABLE docum_plan (
 	doc_id SERIAL PRIMARY KEY,
 	doc_name TEXT,
 	last_mod DATE,
-	in_proccess BOOL
+	in_process BOOL
 
 );
 
@@ -57,6 +90,12 @@ CREATE TABLE archive (
 
 DROP TABLE archive;
 
+CREATE OR REPLACE PROCEDURE add_temp(temp_name TEXT, temp_mod DATE, status BOOL)
+LANGUAGE plpgsql AS $$
+BEGIN
+	INSERT INTO docum_plan(doc_name, last_mod, in_process) VALUES (temp_name, temp_mod, status);
+END; $$
+
 CREATE OR REPLACE PROCEDURE add_faculty(input_name TEXT)
 LANGUAGE plpgsql AS $$
 BEGIN
@@ -67,8 +106,6 @@ CREATE OR REPLACE PROCEDURE add_document(p_name TEXT, p_auth INT, p_pub INT, p_d
 LANGUAGE sql AS $$
 	INSERT INTO archive(publication_name, pub_author, pub_id, publication_date) VALUES (p_name, p_auth, p_pub, p_date);
 $$
-
-
 
 CREATE OR REPLACE FUNCTION show_archive()
 RETURNS table("Название работы" TEXT, "Издательство" TEXT, "Дата публикации" DATE)
@@ -96,7 +133,7 @@ SELECT * FROM faculty;
 
 INSERT INTO faculty(faculty_name) VALUES ('КБ-4');
 
-INSERT INTO teacher(teacher_name, teacher_faculty) VALUES ('Кашкин Евгений Владимирович', 3);
+INSERT INTO teacher(teacher_name, teacher_faculty) VALUES ('Кашкин Евгений Владимирович', 1);
 
 CALL add_document('Исследование ИИ', 1, 1, '07-06-2015');
 CALL add_document('Самое большое название для проверки изменения размеров столбов', 1, 1, '08-07-2016');
@@ -108,14 +145,15 @@ SELECT * FROM teacher;
 SELECT rolname FROM pg_roles;
 
 CREATE TABLE users (
-
+	u_name TEXT,
+	u_surname TEXT,
 	username TEXT,
 	passw TEXT,
 	user_role TEXT
 
 );
-
-
+SELECT * FROM users;
+DROP TABLE users;
 
 CREATE OR REPLACE PROCEDURE insert_user(user_login TEXT, passwd TEXT, user_role TEXT)
 LANGUAGE sql AS $$
@@ -132,11 +170,11 @@ SELECT * FROM pg_roles;
 
 CREATE ROLE administrator LOGIN;
 
-CREATE OR REPLACE FUNCTION strong_insert(user_login TEXT, passwd TEXT, user_role TEXT)
+CREATE OR REPLACE FUNCTION strong_insert(user_login TEXT, passwd TEXT)
 RETURNS INT
 LANGUAGE plpgsql AS $$
 BEGIN
-	IF (SELECT COUNT(*) FROM users WHERE username = user_login) > 0 THEN
+	IF (SELECT COUNT(*) FROM users WHERE username = user_login AND passwd = passw) > 0 THEN
 		RETURN 0;
 	END IF;
 	CALL insert_user(user_login, passwd, user_role);
@@ -149,9 +187,9 @@ GRANT SELECT ON archive TO user_1;
 GRANT SELECT ON publisher TO user_1;
 
 SELECT * FROM users;
-
+DROP FUNCTION user_auth;
 CREATE OR REPLACE FUNCTION user_auth(user_login TEXT, passwd TEXT)
-RETURNS TEXT
+RETURNS INT
 LANGUAGE plpgsql AS $$
 DECLARE
 	status INT;
@@ -162,14 +200,22 @@ BEGIN
 		status = 0;
 	END IF;
 
-	IF status = 1 THEN
-		RETURN (SELECT user_role FROM users WHERE username = user_login AND passw = passwd);
-	END IF;
-	RETURN NULL;
+	
+	RETURN status;
 
 END; $$
-SELECT * FROM user_auth('илья', '1234');
+SELECT * FROM user_auth('e.kashkin', 'hahaha');
 
+DROP FUNCTION role_auth;
+
+CREATE OR REPLACE FUNCTION role_auth(u_name TEXT, u_password TEXT)
+RETURNS TEXT
+LANGUAGE plpgsql AS $$
+BEGIN
+	RETURN (SELECT user_role FROM users WHERE username = u_name AND passw = u_password);
+END; $$
+
+SELECT user_role FROM users WHERE username = 'e.kashkin' AND passw = 'hahaha';
 CREATE ROLE user_1 LOGIN PASSWORD 'student';
 
 GRANT SELECT ON archive TO user_1;
