@@ -27,19 +27,63 @@ BEGIN
 	RETURN 1;
 END; $$
 
-SELECT * FROM check_faculty('Виктор', 'Корнеплод', 'йоу');
+SELECT * FROM check_faculty('Виктор', 'Корнеплод', 'КБ-3');
 SELECT * FROM faculty;
 SELECT * FROM teacher;
+SELECT * FROM users;
+
+select * from teacher as hi;
+
+DROP FUNCTION get_tables;
+
+CREATE OR REPLACE FUNCTION get_tables()
+RETURNS table("AGA" TEXT)
+LANGUAGE plpgsql AS $$
+DECLARE
+	elem TEXT;
+BEGIN
+	CREATE TEMP TABLE rename_rows (
+		ru_name TEXT
+	);
+	
+	FOR elem IN SELECT * FROM (SELECT tablename FROM pg_tables) foo WHERE tablename NOT LIKE 'pg%' AND tablename NOT LIKE 'sql%'
+	LOOP
+		CASE
+			WHEN elem = 'faculty' THEN
+				INSERT INTO rename_rows(ru_name) VALUES ('Факультет');
+			WHEN elem = 'docum_plan' THEN
+				INSERT INTO rename_rows(ru_name) VALUES ('В процессе');
+			WHEN elem = 'teacher' THEN
+				INSERT INTO rename_rows(ru_name) VALUES ('Преподаватели');
+			WHEN elem = 'archive' THEN
+				INSERT INTO rename_rows(ru_name) VALUES ('Архив');
+			WHEN elem = 'publisher' THEN
+				INSERT INTO rename_rows(ru_name) VALUES ('Издательства');
+			ELSE
+				
+		END CASE;
+	END LOOP;
+	
+	SELECT ru_name FROM rename_rows;
+END; $$
+
+SELECT * FROM get_tables();
+
+select * from rename_rows;
+
+SELECT * FROM (SELECT tablename FROM pg_tables) foo WHERE tablename NOT LIKE 'pg%' AND tablename NOT LIKE 'sql%'
 
 CREATE OR REPLACE PROCEDURE add_teacher(t_name TEXT, t_surname TEXT, t_faculty TEXT)
 LANGUAGE plpgsql AS $$
 BEGIN
 	INSERT INTO teacher(teacher_name, teacher_surname, teacher_faculty) VALUES (t_name, t_surname, (SELECT faculty_id FROM faculty WHERE faculty_name = t_faculty));
 END; $$
+
 SELECT *, pg_tablespace_location(oid) FROM pg_tablespace;
 CALL add_teacher('a', 'a', 'a');
 
 SELECT * FROM teacher;
+DELETE FROM teacher WHERE teacher_id = 1;
 
 SELECT * FROM teacher;
 SELECT * FROM faculty;
@@ -64,6 +108,7 @@ CREATE TABLE faculty (
 
 );
 
+SELECT * FROM teacher;
 
 CREATE TABLE publisher (
 
@@ -155,6 +200,8 @@ CREATE TABLE users (
 SELECT * FROM users;
 DROP TABLE users;
 
+
+
 CREATE OR REPLACE PROCEDURE insert_user(user_login TEXT, passwd TEXT, user_role TEXT)
 LANGUAGE sql AS $$
 	INSERT INTO users(username, passw, user_role) VALUES (user_login, passwd, user_role);
@@ -223,4 +270,17 @@ GRANT SELECT ON publisher TO user_1;
 
 REVOKE SELECT ON archive FROM user_1;
 REVOKE SELECT ON publisher FROM user_1;
+
+CREATE ROLE teacher LOGIN PASSWORD 'teacher';
+CREATE ROLE administrator LOGIN PASSWORD 'admininstrator';
+
+GRANT user_1 TO teacher;
+REVOKE user_1 FROM teacher;
+
+GRANT teacher TO administrator;
+REVOKE teacher FROM administrator;
+
+DROP ROLE teacher;
+DROP ROLE administrator;
+
 

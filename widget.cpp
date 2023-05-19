@@ -3,6 +3,13 @@
 
 Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget) {
     ui->setupUi(this);
+    shit_config();
+
+
+
+}
+
+void Widget::shit_config() {
     connect(ui->w_show_db, SIGNAL(clicked()), this, SLOT(show_table()));
     connect(ui->sm_login_button, SIGNAL(clicked()), this, SLOT(login()));
     connect(ui->r_box_role, SIGNAL(currentIndexChanged(int)), this, SLOT(box_changed()));
@@ -10,9 +17,12 @@ Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget) {
     connect(ui->r_auth_link, SIGNAL(clicked()), this, SLOT(auth_link()));
     connect(ui->r_registration_button, SIGNAL(clicked()), this, SLOT(registration()));
     connect(ui->w_disconnect_button, SIGNAL(clicked()), this, SLOT(db_disconnect()));
+    connect(ui->w_table_button, SIGNAL(clicked()), this, SLOT(get_tables()));
+
     set_color(ui->r_wcode_label, Qt::red);
     set_color(ui->r_wdata_label, Qt::red);
     set_color(ui->sm_wdata_label, Qt::red);
+
     ui->r_box_role->setCurrentIndex(0);
     ui->r_wcode_label->hide();
     ui->r_wdata_label->hide();
@@ -33,6 +43,33 @@ void Widget::set_color(QLabel *local_label, QColor color) {
     QPalette palette = local_label->palette();
     palette.setColor(local_label->foregroundRole(), color);
     local_label->setPalette(palette);
+}
+
+void Widget::get_tables() {
+
+    {
+        QSqlDatabase db = QSqlDatabase::addDatabase("QPSQL", "superuser_connection");
+        db.setHostName("localhost");
+        db.setDatabaseName("curse_ach");
+        db.setUserName("postgres");
+        db.setPassword("forstudy");
+        bool status = db.open();
+        qDebug() << status;
+        if (status) {
+            QSqlQuery query = QSqlQuery(db);
+            query.exec("SELECT * FROM get_tables();");
+
+            while (query.next()) {
+                qDebug() << query.value(0).toString();
+            }
+        }
+
+
+    }
+
+    close_db("superuser_connection");
+
+
 }
 
 void Widget::show_table() {

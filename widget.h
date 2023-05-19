@@ -34,6 +34,7 @@ private:
     bool start_db_superuser(QSqlDatabase db);
     QSqlQueryModel *sql_model = nullptr;
     bool wrong_code(int role, QString code);
+    void shit_config();
 
 
 
@@ -45,6 +46,7 @@ public slots:
     void reg_link();
     void auth_link();
     void db_disconnect();
+    void get_tables();
 
 };
 #endif // WIDGET_H
