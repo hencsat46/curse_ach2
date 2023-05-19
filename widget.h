@@ -32,17 +32,18 @@ private:
     bool start_db_teacher();
     bool start_db_admin();
     bool start_db_superuser(QSqlDatabase db);
+    QSqlQueryModel *sql_model;
 
 
 
 public slots:
     void show_table();
-    void change_widget();
     void login();
     void registration();
     void box_changed();
     void reg_link();
     void auth_link();
+    void db_disconnect();
 
 };
 #endif // WIDGET_H

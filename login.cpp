@@ -12,6 +12,7 @@ void Widget::login() {
 
     if (!username.isEmpty() && !password.isEmpty()) {
         {
+
         QSqlDatabase db = QSqlDatabase::addDatabase("QPSQL", "superuser_connection");
         bool status = start_db_superuser(db);
         QSqlQuery query = QSqlQuery(db);
@@ -20,14 +21,15 @@ void Widget::login() {
             query.next();
             pre_role = query.value(0).toString();
             if (pre_role != "") {
+
                 role = pre_role;
+                ui->stackedWidget->setCurrentIndex(0);
+
+
             } else {
                 ui->sm_wdata_label->show();
             }
         }
-
-
-
 
         }
 
