@@ -525,8 +525,8 @@
     <widget class="QPushButton" name="w_disconnect_button">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>90</y>
+       <x>700</x>
+       <y>550</y>
        <width>91</width>
        <height>31</height>
       </rect>
@@ -539,6 +539,58 @@
      </property>
      <property name="text">
       <string>Отключиться</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="comboBox">
+     <property name="geometry">
+      <rect>
+       <x>110</x>
+       <y>20</y>
+       <width>141</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <item>
+      <property name="text">
+       <string>Преподаватели</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Факультеты</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Архив</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Издательства</string>
+      </property>
+     </item>
+    </widget>
+    <widget class="QLabel" name="label_2">
+     <property name="geometry">
+      <rect>
+       <x>260</x>
+       <y>20</y>
+       <width>121</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Cantarell</family>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Выбор таблицы</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
      </property>
     </widget>
    </widget>
@@ -1039,8 +1091,14 @@
        <height>31</height>
       </rect>
      </property>
+     <property name="inputMask">
+      <string/>
+     </property>
      <property name="text">
       <string/>
+     </property>
+     <property name="echoMode">
+      <enum>QLineEdit::Normal</enum>
      </property>
      <property name="placeholderText">
       <string>Пароль</string>

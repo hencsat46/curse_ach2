@@ -32,7 +32,8 @@ private:
     bool start_db_teacher();
     bool start_db_admin();
     bool start_db_superuser(QSqlDatabase db);
-    QSqlQueryModel *sql_model;
+    QSqlQueryModel *sql_model = nullptr;
+    bool wrong_code(int role, QString code);
 
 
 

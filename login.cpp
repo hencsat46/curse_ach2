@@ -6,6 +6,7 @@ void Widget::auth_link() {
 }
 
 void Widget::login() {
+
     QString username = ui->sm_login_edit->text();
     QString password = ui->sm_password_edit->text();
     QString pre_role;

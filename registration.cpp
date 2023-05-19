@@ -19,6 +19,12 @@ void Widget::registration() {
         return;
     }
 
+    if (wrong_code(role, code)) {
+        ui->r_wcode_label->show();
+        ui->r_wdata_label->hide();
+        return;
+    }
+
     {
         QSqlDatabase db = QSqlDatabase::addDatabase("QPSQL", "superuser_connection");
         bool status = start_db_superuser(db);
@@ -32,22 +38,12 @@ void Widget::registration() {
                     qDebug() << "student added\n";
                     break;
                 case 1:
-                    if (code == "1234") {
-                        query.exec("SELECT * FROM strong_insert(\'" + username + "\', \'" + password + "\', \'teacher\');");
-                        qDebug() << "teacher added\n";
-                    } else {
-                        ui->r_wcode_label->show();
-                        ui->r_wdata_label->hide();
-                    }
+                    query.exec("SELECT * FROM strong_insert(\'" + username + "\', \'" + password + "\', \'teacher\');");
+                    qDebug() << "teacher added\n";
                     break;
                 case 2:
-                    if (code == "4321") {
-                        query.exec("SELECT * FROM strong_insert(\'" + username + "\', \'" + password + "\', \'admin\');");
-                        qDebug() << "admin added\n";
-                    } else {
-                        ui->r_wcode_label->show();
-                        ui->r_wdata_label->hide();
-                    }
+                    query.exec("SELECT * FROM strong_insert(\'" + username + "\', \'" + password + "\', \'admin\');");
+                    qDebug() << "admin added\n";
                     break;
             }
         }
@@ -77,4 +73,9 @@ bool Widget::start_db_superuser(QSqlDatabase db) {
     db.setUserName("postgres");
     db.setPassword("forstudy");
     return db.open();
+}
+
+bool Widget::wrong_code(int role, QString code) {
+    if ((role == 1 && code != "1234") || (role == 2 && code != "4321")) return true ;
+    return false;
 }
