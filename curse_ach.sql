@@ -5,17 +5,30 @@ CREATE TABLE teacher (
 	teacher_id SERIAL PRIMARY KEY,
 	teacher_name TEXT,
 	teacher_faculty INT,
-	FOREIGN KEY (teacher_faculty) REFERENCES faculty(faculty_id)
-	
+	teacher_last_doc INT,
+	FOREIGN KEY (teacher_faculty) REFERENCES faculty(faculty_id),
+	FOREIGN KEY (teacher_last_doc) REFERENCES docum_plan(doc_id)
+
 );
 
-DROP TABLE teacher;
+DROP TABLE teacher CASCADE;
+
+CREATE TABLE docum_plan (
+
+	doc_id SERIAL PRIMARY KEY,
+	doc_name TEXT,
+	last_mod DATE,
+	in_proccess BOOL
+
+);
+
+DROP TABLE docum_plan CASCADE;
 
 CREATE TABLE faculty (
 
 	faculty_id SERIAL PRIMARY KEY,
 	faculty_name TEXT NOT NULL
-	
+
 );
 
 
@@ -39,7 +52,7 @@ CREATE TABLE archive (
 	pub_author INT,
 	FOREIGN KEY (pub_author) REFERENCES teacher(teacher_id),
 	FOREIGN KEY (pub_id) REFERENCES publisher(publisher_id)
-	
+
 );
 
 DROP TABLE archive;
@@ -102,6 +115,8 @@ CREATE TABLE users (
 
 );
 
+
+
 CREATE OR REPLACE PROCEDURE insert_user(user_login TEXT, passwd TEXT, user_role TEXT)
 LANGUAGE sql AS $$
 	INSERT INTO users(username, passw, user_role) VALUES (user_login, passwd, user_role);
@@ -135,4 +150,31 @@ GRANT SELECT ON publisher TO user_1;
 
 SELECT * FROM users;
 
+CREATE OR REPLACE FUNCTION user_auth(user_login TEXT, passwd TEXT)
+RETURNS TEXT
+LANGUAGE plpgsql AS $$
+DECLARE
+	status INT;
+BEGIN
+	IF (SELECT COUNT(*) FROM users WHERE username = user_login AND passw = passwd) = 1 THEN
+		status = 1;
+	ELSE
+		status = 0;
+	END IF;
+
+	IF status = 1 THEN
+		RETURN (SELECT user_role FROM users WHERE username = user_login AND passw = passwd);
+	END IF;
+	RETURN NULL;
+
+END; $$
+SELECT * FROM user_auth('илья', '1234');
+
+CREATE ROLE user_1 LOGIN PASSWORD 'student';
+
+GRANT SELECT ON archive TO user_1;
+GRANT SELECT ON publisher TO user_1;
+
+REVOKE SELECT ON archive FROM user_1;
+REVOKE SELECT ON publisher FROM user_1;
 
