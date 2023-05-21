@@ -37,37 +37,46 @@ select * from teacher as hi;
 DROP FUNCTION get_tables;
 
 CREATE OR REPLACE FUNCTION get_tables()
-RETURNS table("AGA" TEXT)
+RETURNS table("AGA" TEXT, "OGO" TEXT)
 LANGUAGE plpgsql AS $$
 DECLARE
 	elem TEXT;
 BEGIN
 	CREATE TEMP TABLE rename_rows (
-		ru_name TEXT
+		ru_name TEXT,
+		en_name TEXT
 	);
 	
-	FOR elem IN SELECT * FROM (SELECT tablename FROM pg_tables) foo WHERE tablename NOT LIKE 'pg%' AND tablename NOT LIKE 'sql%'
+	FOR elem IN SELECT * FROM (SELECT tablename FROM pg_tables) foo WHERE tablename NOT LIKE 'pg%' AND tablename NOT LIKE 'sql%' ORDER BY tablename ASC
 	LOOP
 		CASE
 			WHEN elem = 'faculty' THEN
-				INSERT INTO rename_rows(ru_name) VALUES ('Факультет');
+				INSERT INTO rename_rows(ru_name, en_name) VALUES ('Факультет', elem);
 			WHEN elem = 'docum_plan' THEN
-				INSERT INTO rename_rows(ru_name) VALUES ('В процессе');
+				INSERT INTO rename_rows(ru_name, en_name) VALUES ('В процессе', elem);
 			WHEN elem = 'teacher' THEN
-				INSERT INTO rename_rows(ru_name) VALUES ('Преподаватели');
+				INSERT INTO rename_rows(ru_name, en_name) VALUES ('Преподаватели', elem);
 			WHEN elem = 'archive' THEN
-				INSERT INTO rename_rows(ru_name) VALUES ('Архив');
+				INSERT INTO rename_rows(ru_name, en_name) VALUES ('Архив', elem);
 			WHEN elem = 'publisher' THEN
-				INSERT INTO rename_rows(ru_name) VALUES ('Издательства');
+				INSERT INTO rename_rows(ru_name, en_name) VALUES ('Издательства', elem);
 			ELSE
+				CONTINUE;
 				
 		END CASE;
 	END LOOP;
 	
-	SELECT ru_name FROM rename_rows;
+	RETURN QUERY SELECT ru_name, en_name FROM rename_rows;
+	DROP TABLE rename_rows;
 END; $$
 
 SELECT * FROM get_tables();
+
+DROP TABLE rename_rows;
+
+SELECT * FROM rename_rows;
+SELECT * FROM users;
+
 
 select * from rename_rows;
 
@@ -268,6 +277,8 @@ CREATE ROLE user_1 LOGIN PASSWORD 'student';
 GRANT SELECT ON archive TO user_1;
 GRANT SELECT ON publisher TO user_1;
 
+
+
 REVOKE SELECT ON archive FROM user_1;
 REVOKE SELECT ON publisher FROM user_1;
 
@@ -282,5 +293,3 @@ REVOKE teacher FROM administrator;
 
 DROP ROLE teacher;
 DROP ROLE administrator;
-
-

@@ -17,7 +17,7 @@ void Widget::shit_config() {
     connect(ui->r_auth_link, SIGNAL(clicked()), this, SLOT(auth_link()));
     connect(ui->r_registration_button, SIGNAL(clicked()), this, SLOT(registration()));
     connect(ui->w_disconnect_button, SIGNAL(clicked()), this, SLOT(db_disconnect()));
-    connect(ui->w_table_button, SIGNAL(clicked()), this, SLOT(get_tables()));
+    connect(ui->stackedWidget, SIGNAL(currentChanged(int)), this, SLOT(get_tables()));
 
     set_color(ui->r_wcode_label, Qt::red);
     set_color(ui->r_wdata_label, Qt::red);
@@ -47,6 +47,11 @@ void Widget::set_color(QLabel *local_label, QColor color) {
 
 void Widget::get_tables() {
 
+    if (ui->stackedWidget->currentIndex() != 0) return;
+
+
+
+    qDebug() << "table";
     {
         QSqlDatabase db = QSqlDatabase::addDatabase("QPSQL", "superuser_connection");
         db.setHostName("localhost");
@@ -54,42 +59,69 @@ void Widget::get_tables() {
         db.setUserName("postgres");
         db.setPassword("forstudy");
         bool status = db.open();
+        table_list = QList<QString>();
         qDebug() << status;
         if (status) {
             QSqlQuery query = QSqlQuery(db);
             query.exec("SELECT * FROM get_tables();");
-
+            QString elem, elem_table;
             while (query.next()) {
-                qDebug() << query.value(0).toString();
+                elem = query.value(0).toString();
+                elem_table = query.value(1).toString();
+                ui->w_tables_box->addItem(elem);
+                table_list.append(elem_table);
             }
         }
 
 
     }
 
-    close_db("superuser_connection");
 
+    close_db("superuser_connection");
+    qDebug() << "end table";
+    qDebug() << table_list[0];
 
 }
 
 void Widget::show_table() {
 
-    QSqlDatabase db = QSqlDatabase::addDatabase("QPSQL", "user_connection");
+    QString connection_name = role + "_connection";
+    {
+
+    QSqlDatabase db = QSqlDatabase::addDatabase("QPSQL", connection_name);
     db.setHostName("localhost");
     db.setDatabaseName("curse_ach");
-    db.setUserName(role);
+    db.setUserName("user_1");
+    db.setPassword("user_1");
 
-    if (role == "user_1") db.setPassword("student");
-    else db.setPassword(role);
+    qDebug() << role;
+
     bool status = db.open();
+
+    qDebug() << db.isOpen();
 
     sql_model = new QSqlQueryModel();
     if (status) sql_model->setQuery("SELECT * FROM show_archive();", db);
+
+    qDebug() << sql_model->lastError();
 
     this->ui->w_table->horizontalHeader()->setStretchLastSection(true);
     this->ui->w_table->setModel(sql_model);
     this->ui->w_table->resizeColumnsToContents();
 
+    }
+
+    //close_mode_connection(connection_name);
+
+}
+
+void Widget::close_mode_connection(QString connection_name) {
+    if (sql_model != nullptr) {
+        delete sql_model;
+        sql_model = nullptr;
+        close_db(connection_name);
+        qDebug() << "connection closed\n";
+    }
 }
 
 void Widget::db_disconnect() {
@@ -109,3 +141,5 @@ void Widget::close_db(QString connection_name) {
     QSqlDatabase::removeDatabase(connection_name);
     return;
 }
+
+

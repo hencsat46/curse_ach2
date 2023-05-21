@@ -541,7 +541,7 @@
       <string>Отключиться</string>
      </property>
     </widget>
-    <widget class="QComboBox" name="comboBox">
+    <widget class="QComboBox" name="w_tables_box">
      <property name="geometry">
       <rect>
        <x>110</x>
@@ -550,26 +550,6 @@
        <height>25</height>
       </rect>
      </property>
-     <item>
-      <property name="text">
-       <string>Преподаватели</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Факультеты</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Архив</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Издательства</string>
-      </property>
-     </item>
     </widget>
     <widget class="QLabel" name="label_2">
      <property name="geometry">

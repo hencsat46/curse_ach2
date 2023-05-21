@@ -8,8 +8,10 @@
 #include <QStandardItemModel>
 #include <QSqlQueryModel>
 #include <QSqlQuery>
+#include <QSqlError>
 #include <QTableWidget>
 #include <QLabel>
+#include <QList>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Widget; }
@@ -35,7 +37,8 @@ private:
     QSqlQueryModel *sql_model = nullptr;
     bool wrong_code(int role, QString code);
     void shit_config();
-
+    void close_mode_connection(QString connection_name);
+    QList<QString> table_list;
 
 
 public slots:
@@ -47,6 +50,7 @@ public slots:
     void auth_link();
     void db_disconnect();
     void get_tables();
+    //void table_changed();
 
 };
 #endif // WIDGET_H

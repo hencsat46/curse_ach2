@@ -14,7 +14,7 @@ void Widget::login() {
     if (!username.isEmpty() && !password.isEmpty()) {
         {
 
-        QSqlDatabase db = QSqlDatabase::addDatabase("QPSQL", "superuser_connection");
+        QSqlDatabase db = QSqlDatabase::addDatabase("QPSQL", "superuser_connection_table");
         bool status = start_db_superuser(db);
         QSqlQuery query = QSqlQuery(db);
         if (status) {
@@ -36,7 +36,7 @@ void Widget::login() {
 
         }
 
-        close_db("superuser_connection");
+        close_db("superuser_connection_table");
     }
 }
 
