@@ -22,8 +22,8 @@ void Widget::login() {
             query.next();
             pre_role = query.value(0).toString();
             qDebug() << pre_role;
-            if (pre_role == "1") {
-                query.exec("SELECT * FROM user_auth(\'" + username + "\', \'" + password + "\');");
+            if (pre_role == "0") {
+                query.exec("SELECT * FROM role_auth(\'" + username + "\', \'" + password + "\');");
                 query.next();
                 role = query.value(0).toString();
                 ui->stackedWidget->setCurrentIndex(0);

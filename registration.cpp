@@ -44,7 +44,7 @@ void Widget::registration() {
                     qDebug() << "teacher added\n";
                     break;
                 case 2:
-                    query.exec("SELECT * FROM strong_insert(\'" + username + "\', \'" + password + "\', \'admininstrator\');");
+                    query.exec("SELECT * FROM strong_insert(\'" + username + "\', \'" + password + "\', \'administrator\');");
                     qDebug() << "admin added\n";
                     break;
             }

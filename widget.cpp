@@ -32,6 +32,7 @@ void Widget::shit_config() {
     ui->stackedWidget->setCurrentIndex(1);
     ui->sm_password_edit->setEchoMode(QLineEdit::Password);
     ui->r_password_edit->setEchoMode(QLineEdit::Password);
+    ui->w_waccess_label->hide();
 
 }
 
@@ -86,13 +87,15 @@ void Widget::get_tables() {
 void Widget::show_table() {
 
     QString connection_name = role + "_connection";
+    //qDebug() << connection_name;
+
     {
 
     QSqlDatabase db = QSqlDatabase::addDatabase("QPSQL", connection_name);
     db.setHostName("localhost");
     db.setDatabaseName("curse_ach");
-    db.setUserName("user_1");
-    db.setPassword("user_1");
+    db.setUserName(role);
+    db.setPassword(role);
 
     qDebug() << role;
 
@@ -103,7 +106,7 @@ void Widget::show_table() {
     sql_model = new QSqlQueryModel();
     if (status) sql_model->setQuery("SELECT * FROM show_archive();", db);
 
-    qDebug() << sql_model->lastError();
+    check_permission(sql_model->lastError().nativeErrorCode());
 
     this->ui->w_table->horizontalHeader()->setStretchLastSection(true);
     this->ui->w_table->setModel(sql_model);
@@ -111,7 +114,7 @@ void Widget::show_table() {
 
     }
 
-    //close_mode_connection(connection_name);
+    close_mode_connection(connection_name);
 
 }
 
@@ -142,4 +145,13 @@ void Widget::close_db(QString connection_name) {
     return;
 }
 
+bool Widget::check_permission(QString code) {
 
+    if (code == "42501") {
+        ui->w_waccess_label->show();
+        return false;
+    }
+
+    ui->w_waccess_label->hide();
+    return true;
+}

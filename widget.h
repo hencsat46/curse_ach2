@@ -39,6 +39,7 @@ private:
     void shit_config();
     void close_mode_connection(QString connection_name);
     QList<QString> table_list;
+    bool check_permission(QString code);
 
 
 public slots:

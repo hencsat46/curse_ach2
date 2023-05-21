@@ -226,24 +226,28 @@ SELECT * FROM pg_roles;
 
 CREATE ROLE administrator LOGIN;
 
-CREATE OR REPLACE FUNCTION strong_insert(user_login TEXT, passwd TEXT)
+DROP FUNCTION strong_insert;
+
+CREATE OR REPLACE FUNCTION strong_insert(user_login TEXT, passwd TEXT, user_role TEXT)
 RETURNS INT
 LANGUAGE plpgsql AS $$
 BEGIN
 	IF (SELECT COUNT(*) FROM users WHERE username = user_login AND passwd = passw) > 0 THEN
-		RETURN 0;
+		RETURN 1;
 	END IF;
 	CALL insert_user(user_login, passwd, user_role);
-	RETURN 1;
+	RETURN 0;
 END; $$
 
 SELECT * FROM strong_insert('яяя', '123', 'asdf');
+SELECT * FROM strong_insert('ad', 'ad', 'administrator');
 
 GRANT SELECT ON archive TO user_1;
 GRANT SELECT ON publisher TO user_1;
 
 SELECT * FROM users;
 DROP FUNCTION user_auth;
+
 CREATE OR REPLACE FUNCTION user_auth(user_login TEXT, passwd TEXT)
 RETURNS INT
 LANGUAGE plpgsql AS $$
@@ -264,12 +268,16 @@ SELECT * FROM user_auth('e.kashkin', 'hahaha');
 
 DROP FUNCTION role_auth;
 
-CREATE OR REPLACE FUNCTION role_auth(u_name TEXT, u_password TEXT)
+CREATE OR REPLACE FUNCTION role_auth(user_name TEXT, u_password TEXT)
 RETURNS TEXT
 LANGUAGE plpgsql AS $$
 BEGIN
-	RETURN (SELECT user_role FROM users WHERE username = u_name AND passw = u_password);
+	RETURN (SELECT user_role FROM users WHERE username = user_name AND passw = u_password);
 END; $$
+
+SELECT * FROM users;
+
+SELECT * FROM role_auth('a', 'a');
 
 SELECT user_role FROM users WHERE username = 'e.kashkin' AND passw = 'hahaha';
 CREATE ROLE user_1 LOGIN PASSWORD 'student';
@@ -277,7 +285,7 @@ CREATE ROLE user_1 LOGIN PASSWORD 'student';
 GRANT SELECT ON archive TO user_1;
 GRANT SELECT ON publisher TO user_1;
 
-
+SELECT * FROM show_archive();
 
 REVOKE SELECT ON archive FROM user_1;
 REVOKE SELECT ON publisher FROM user_1;

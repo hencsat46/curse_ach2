@@ -1,0 +1,3 @@
+#!/bin/bash
+
+cat /var/lib/pgadmin/storage/*/curse_ach > ~/prog_cpp/qt/curse_ach*/curse_ach.sql
