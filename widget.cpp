@@ -108,7 +108,7 @@ void Widget::show_table() {
     qDebug() << table;
     sql_model = new QSqlQueryModel();
     table_model = new QSqlTableModel(nullptr, db);
-    table_model->setQuery("SELECT * FROM show_archive();", db);
+    table_model->QSqlQueryModel::setQuery("SELECT * FROM show_faculty();", db);
     if (status) {
         switch(table) {
             case 0:
@@ -132,8 +132,10 @@ void Widget::show_table() {
     check_permission(sql_model->lastError().nativeErrorCode());
 
     this->ui->w_table->horizontalHeader()->setStretchLastSection(true);
-    this->ui->w_table->setModel(sql_model);
+    this->ui->w_table->setModel(table_model);
     this->ui->w_table->resizeColumnsToContents();
+
+    qDebug() << table_model->fieldIndex("4");
 
     }
 
