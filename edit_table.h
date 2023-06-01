@@ -2,21 +2,29 @@
 #define EDIT_TABLE_H
 
 #include <QWidget>
+#include <QSqlQueryModel>
+#include <QStringListModel>
 
 namespace Ui {
-class edit_table;
+class Edit_table;
 }
 
-class edit_table : public QWidget
+class Edit_table : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit edit_table(QWidget *parent = nullptr);
-    ~edit_table();
+    explicit Edit_table(QWidget *parent = nullptr);
+    ~Edit_table();
+    void pass_table(QSqlQueryModel *table);
+    Qt::ItemFlags flags(const QModelIndex &index) const;
+    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
 
 private:
-    Ui::edit_table *ui;
+    Ui::Edit_table *ui;
+
+public slots:
+    void close_table();
 };
 
 #endif // EDIT_TABLE_H

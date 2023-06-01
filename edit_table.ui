@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>edit_table</class>
- <widget class="QWidget" name="edit_table">
+ <class>Edit_table</class>
+ <widget class="QWidget" name="Edit_table">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -13,21 +13,11 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <widget class="QTableView" name="w_table">
+  <widget class="QPushButton" name="e_remove_button">
    <property name="geometry">
     <rect>
-     <x>110</x>
-     <y>50</y>
-     <width>561</width>
-     <height>251</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="pushButton">
-   <property name="geometry">
-    <rect>
-     <x>590</x>
-     <y>310</y>
+     <x>580</x>
+     <y>300</y>
      <width>80</width>
      <height>25</height>
     </rect>
@@ -36,17 +26,53 @@
     <string>Удалить</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_2">
+  <widget class="QPushButton" name="e_save_button">
    <property name="geometry">
     <rect>
-     <x>500</x>
-     <y>310</y>
+     <x>690</x>
+     <y>550</y>
+     <width>80</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Сохранить</string>
+   </property>
+  </widget>
+  <widget class="QTableView" name="e_table">
+   <property name="geometry">
+    <rect>
+     <x>100</x>
+     <y>40</y>
+     <width>561</width>
+     <height>251</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="e_add_button">
+   <property name="geometry">
+    <rect>
+     <x>490</x>
+     <y>300</y>
      <width>80</width>
      <height>25</height>
     </rect>
    </property>
    <property name="text">
     <string>Добавить</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="e_quit_button">
+   <property name="geometry">
+    <rect>
+     <x>600</x>
+     <y>550</y>
+     <width>80</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Выйти</string>
    </property>
   </widget>
  </widget>

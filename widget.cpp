@@ -107,6 +107,8 @@ void Widget::show_table() {
     int table = ui->w_tables_box->currentIndex();
     qDebug() << table;
     sql_model = new QSqlQueryModel();
+    table_model = new QSqlTableModel(nullptr, db);
+    table_model->setQuery("SELECT * FROM show_archive();", db);
     if (status) {
         switch(table) {
             case 0:
@@ -142,6 +144,7 @@ void Widget::show_table() {
 void Widget::show_edit_table() {
 
     table.show();
+    table.pass_table(sql_model);
 
 }
 
@@ -163,25 +166,6 @@ void Widget::db_disconnect() {
     }
 }
 
-Qt::ItemFlags QStringListModel::flags(const QModelIndex &index) const
-{
-    if (!index.isValid())
-        return Qt::ItemIsEnabled;
-
-    return QAbstractItemModel::flags(index) | Qt::ItemIsEditable;
-}
-
-bool QStringListModel::setData(const QModelIndex &index,
-                              const QVariant &value, int role)
-{
-    if (index.isValid() && role == Qt::EditRole) {
-
-        stringList().replace(index.row(), value.toString());
-        emit dataChanged(index, index);
-        return true;
-    }
-    return false;
-}
 
 void Widget::close_db(QString connection_name) {
     {
