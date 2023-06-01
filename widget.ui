@@ -496,32 +496,6 @@
       <string>Show table</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="w_add_button">
-     <property name="geometry">
-      <rect>
-       <x>500</x>
-       <y>310</y>
-       <width>80</width>
-       <height>25</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Добавить</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="w_remove_button">
-     <property name="geometry">
-      <rect>
-       <x>590</x>
-       <y>310</y>
-       <width>80</width>
-       <height>25</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Удалить</string>
-     </property>
-    </widget>
     <widget class="QPushButton" name="w_disconnect_button">
      <property name="geometry">
       <rect>
@@ -606,6 +580,19 @@
      </property>
      <property name="wordWrap">
       <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="w_edit_button">
+     <property name="geometry">
+      <rect>
+       <x>590</x>
+       <y>320</y>
+       <width>80</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Изменить</string>
      </property>
     </widget>
    </widget>

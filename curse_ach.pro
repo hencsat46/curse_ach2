@@ -9,15 +9,18 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    edit_table.cpp \
     login.cpp \
     main.cpp \
     registration.cpp \
     widget.cpp
 
 HEADERS += \
+    edit_table.h \
     widget.h
 
 FORMS += \
+    edit_table.ui \
     widget.ui
 
 # Default rules for deployment.

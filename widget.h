@@ -12,6 +12,8 @@
 #include <QTableWidget>
 #include <QLabel>
 #include <QList>
+#include "edit_table.h"
+#include "QStringListModel"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Widget; }
@@ -24,6 +26,8 @@ public:
     Widget(QWidget *parent = nullptr);
     ~Widget();
     void set_color(QLabel *label, QColor color);
+    Qt::ItemFlags flags(const QModelIndex &index) const;
+    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
 
 private:
     Ui::Widget *ui;
@@ -40,6 +44,7 @@ private:
     void close_mode_connection(QString connection_name);
     QList<QString> table_list;
     bool check_permission(QString code);
+    edit_table table;
 
 
 public slots:
@@ -51,6 +56,7 @@ public slots:
     void auth_link();
     void db_disconnect();
     void get_tables();
+    void show_edit_table();
     //void table_changed();
 
 };

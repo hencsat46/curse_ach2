@@ -18,6 +18,7 @@ void Widget::shit_config() {
     connect(ui->r_registration_button, SIGNAL(clicked()), this, SLOT(registration()));
     connect(ui->w_disconnect_button, SIGNAL(clicked()), this, SLOT(db_disconnect()));
     connect(ui->stackedWidget, SIGNAL(currentChanged(int)), this, SLOT(get_tables()));
+    connect(ui->w_edit_button, SIGNAL(clicked()), this, SLOT(show_edit_table()));
 
     set_color(ui->r_wcode_label, Qt::red);
     set_color(ui->r_wdata_label, Qt::red);
@@ -88,7 +89,7 @@ void Widget::show_table() {
 
     QString connection_name = role + "_connection";
     //qDebug() << connection_name;
-
+    if (QSqlDatabase::database(connection_name).isOpen()) close_mode_connection(connection_name);
     {
 
     QSqlDatabase db = QSqlDatabase::addDatabase("QPSQL", connection_name);
@@ -103,8 +104,28 @@ void Widget::show_table() {
 
     qDebug() << db.isOpen();
 
+    int table = ui->w_tables_box->currentIndex();
+    qDebug() << table;
     sql_model = new QSqlQueryModel();
-    if (status) sql_model->setQuery("SELECT * FROM show_archive();", db);
+    if (status) {
+        switch(table) {
+            case 0:
+                sql_model->setQuery("SELECT * FROM show_archive();", db);
+                break;
+            case 1:
+                sql_model->setQuery("SELECT * FROM show_docum_plan();", db);
+                break;
+            case 2:
+                sql_model->setQuery("SELECT * FROM show_faculty();", db);
+                break;
+            case 3:
+                sql_model->setQuery("SELECT * FROM show_publisher();", db);
+                break;
+            case 4:
+                sql_model->setQuery("SELECT * FROM show_teacher();", db);
+                break;
+        }
+    }
 
     check_permission(sql_model->lastError().nativeErrorCode());
 
@@ -114,7 +135,13 @@ void Widget::show_table() {
 
     }
 
-    close_mode_connection(connection_name);
+    //
+
+}
+
+void Widget::show_edit_table() {
+
+    table.show();
 
 }
 
@@ -134,6 +161,26 @@ void Widget::db_disconnect() {
         close_db("user_connection");
         qDebug() << "connection closed\n";
     }
+}
+
+Qt::ItemFlags QStringListModel::flags(const QModelIndex &index) const
+{
+    if (!index.isValid())
+        return Qt::ItemIsEnabled;
+
+    return QAbstractItemModel::flags(index) | Qt::ItemIsEditable;
+}
+
+bool QStringListModel::setData(const QModelIndex &index,
+                              const QVariant &value, int role)
+{
+    if (index.isValid() && role == Qt::EditRole) {
+
+        stringList().replace(index.row(), value.toString());
+        emit dataChanged(index, index);
+        return true;
+    }
+    return false;
 }
 
 void Widget::close_db(QString connection_name) {

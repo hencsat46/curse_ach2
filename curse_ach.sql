@@ -108,14 +108,18 @@ CREATE TABLE docum_plan (
 
 );
 
+SELECT * FROM docum_plan;
+
 DROP TABLE docum_plan CASCADE;
 
 CREATE TABLE faculty (
 
 	faculty_id SERIAL PRIMARY KEY,
-	faculty_name TEXT NOT NULL
+	faculty_name TEXT NOT NULL,
 
 );
+
+ALTER TABLE faculty ADD COLUMN teacher_count INT;
 
 SELECT * FROM teacher;
 
@@ -161,6 +165,18 @@ LANGUAGE sql AS $$
 	INSERT INTO archive(publication_name, pub_author, pub_id, publication_date) VALUES (p_name, p_auth, p_pub, p_date);
 $$
 
+DROP FUNCTION show_docum_plan;
+
+CREATE OR REPLACE FUNCTION show_docum_plan()
+RETURNS table("Название работы" TEXT, "Последнее изменение" DATE, "Закончена ли работа true/false" BOOL)
+LANGUAGE sql AS $$
+	SELECT doc_name, last_mod, in_process from docum_plan;
+$$
+
+SELECT * FROM show_archive();
+
+SELECT * FROM show_docum_plan();
+
 CREATE OR REPLACE FUNCTION show_archive()
 RETURNS table("Название работы" TEXT, "Издательство" TEXT, "Дата публикации" DATE)
 LANGUAGE sql AS $$
@@ -168,7 +184,47 @@ LANGUAGE sql AS $$
 	LEFT JOIN publisher pub ON ar.pub_id = pub.publisher_id;
 $$
 
+DROP FUNCTION show_teacher();
+
+CREATE OR REPLACE FUNCTION show_teacher()
+RETURNS table("Имя преподавателя" TEXT, "Фамилия преподавателя" TEXT, "Факультет преподавателя" TEXT)
+LANGUAGE sql AS $$
+	SELECT t.teacher_name, t.teacher_surname, f.faculty_name FROM teacher t
+	LEFT JOIN faculty f ON t.teacher_faculty = f.faculty_id;
+$$
+
+SELECT * FROM show_teacher();
+
+DROP FUNCTION show_publisher();
+
+CREATE OR REPLACE FUNCTION show_publisher()
+RETURNS table("Название издательства" TEXT, "Главный директор" TEXT, "Адрес" TEXT)
+LANGUAGE sql AS $$
+	SELECT pub_name, address, general_manager FROM publisher;
+$$
+
+SELECT * FROM show_publisher();
+
+DROP FUNCTION show_faculty;
+
+CREATE OR REPLACE FUNCTION show_faculty()
+RETURNS table("Название кафедры" TEXT, "Количество преподавателей" INT)
+LANGUAGE sql AS $$
+	SELECT faculty_name, teacher_count FROM faculty;
+$$
+
+SELECT * FROM show_faculty();
+
+
+
+
+SELECT * FROM publisher;
+
+
 DROP FUNCTION show_archive;
+
+SELECT * FROM teacher;
+SELECT * FROM faculty;
 
 
 CALL add_faculty('Марь Иванна');
@@ -284,6 +340,8 @@ CREATE ROLE user_1 LOGIN PASSWORD 'student';
 
 GRANT SELECT ON archive TO user_1;
 GRANT SELECT ON publisher TO user_1;
+GRANT SELECT ON faculty TO user_1;
+GRANT SELECT ON teacher TO user_1;
 
 SELECT * FROM show_archive();
 
@@ -301,3 +359,6 @@ REVOKE teacher FROM administrator;
 
 DROP ROLE teacher;
 DROP ROLE administrator;
+
+SELECT * FROM users;
+
