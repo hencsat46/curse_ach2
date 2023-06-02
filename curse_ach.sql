@@ -250,6 +250,63 @@ DROP FUNCTION show_archive;
 SELECT * FROM teacher;
 SELECT * FROM faculty;
 
+CREATE VIEW teacher_view AS SELECT t.teacher_id, t.teacher_name, t.teacher_surname, f.faculty_name FROM teacher t
+	LEFT JOIN faculty f ON t.teacher_faculty = f.faculty_id;
+
+SELECT * FROM teacher_view;
+
+DROP VIEW teacher_view;
+SELECT * FROM teacher;
+SELECT * FROM faculty;
+
+------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION update_teacher(old_table teacher_view, new_table teacher_view)
+RETURNS INT AS $$
+DECLARE
+	temp_faculty INT;
+BEGIN
+	UPDATE teacher
+		SET teacher_name = new_table.teacher_name, 
+		teacher_surname = new_table.teacher_surname
+		WHERE teacher_id = old_table.teacher_id;
+		
+	IF new_table.faculty_name IN (SELECT faculty_name FROM faculty) AND new_table.faculty_name IS NOT NULL THEN
+		temp_faculty = (SELECT faculty_id FROM faculty WHERE new_table.faculty_name = faculty.faculty_name);
+		UPDATE teacher
+		SET teacher_faculty = temp_faculty;
+	ELSE
+		RETURN -1;
+	END IF;	
+	RETURN 0;
+END; $$
+LANGUAGE plpgsql;
+-----------------------------------------------------------------------------
+SELECT * FROM teacher;
+CREATE RULE update_view AS ON UPDATE TO teacher_view DO INSTEAD(
+    SELECT update_teacher(OLD, NEW));
+	
+CREATE RULE update_view_temp AS ON UPDATE TO teacher_view DO INSTEAD(
+	SELECT temp_f(OLD, NEW));
+
+DROP FUNCTION update_teacher(teacher_view, teacher_view) CASCADE;
+DROP RULE update_view_temp ON teacher_view;
+
+CREATE OR REPLACE FUNCTION temp_f (old_t teacher_view, new_t teacher_view)
+RETURNS TEXT AS $$
+BEGIN
+	RETURN new_t.faculty_name;
+END; $$
+LANGUAGE plpgsql;
+
+DROP RULE update_view ON teacher_view;
+	
+SELECT * FROM teacher_view;
+SELECT * FROM show_teacher();
+
+UPDATE teacher_view SET teacher_name = 'Гнилетруп', teacher_surname = 'Тухлогной' WHERE teacher_id = 1;
+UPDATE teacher_view SET faculty_name = 'КБ-4' WHERE teacher_id = 1;
+UPDATE teacher_view SET teacher_name = 'Бнилобин' WHERE teacher_id = 2;
+
 
 CALL add_faculty('Марь Иванна');
 CALL show_faculty();
