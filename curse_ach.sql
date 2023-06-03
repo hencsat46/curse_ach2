@@ -12,7 +12,39 @@ CREATE TABLE teacher (
 
 );
 
+ALTER TABLE teacher ADD COLUMN teacher_age INT;
 
+DROP TABLE student;
+CREATE TABLE student (
+
+	student_id SERIAL PRIMARY KEY,
+	student_name TEXT,
+	student_surname TEXT,
+	student_faculty INT,
+	student_age INT,
+	FOREIGN KEY (student_faculty) REFERENCES faculty(faculty_id)
+
+);
+
+DROP FUNCTION insert_student;
+CREATE OR REPLACE FUNCTION insert_student(s_name TEXT, s_surname TEXT, s_faculty INT, s_age INT)
+RETURNS VOID
+LANGUAGE plpgsql AS $$
+BEGIN
+	INSERT INTO student(student_name, student_surname, student_faculty, student_age) VALUES (s_name, s_surname, s_faculty, s_age);
+END; $$
+
+SELECT * FROM insert_student('Джиган', 'Шабидульевич', 1, 19);
+SELECT * FROM faculty;
+CREATE OR REPLACE FUNCTION show_student()
+RETURNS table("ФИО студента" TEXT, "Возраст" INT, "Факультет" TEXT)
+LANGUAGE plpgsql AS $$
+BEGIN
+	RETURN QUERY SELECT CONCAT(st.student_name, ' ', st.student_surname), st.student_age, f.faculty_name FROM student st
+	LEFT JOIN faculty f ON st.student_id = f.faculty_id;
+END; $$
+
+SELECT * FROM show_student();
 DROP FUNCTION check_faculty;
 
 CREATE OR REPLACE FUNCTION check_faculty(t_name TEXT, t_surname TEXT, t_faculty TEXT)
@@ -194,12 +226,11 @@ LANGUAGE sql AS $$
 $$
 
 DROP FUNCTION show_docum_plan;
-
+----------------------------!!!!!!!!!!!!!!!!!!!!---------------------------
 CREATE OR REPLACE FUNCTION show_docum_plan()
 RETURNS table("Название работы" TEXT, "Последнее изменение" DATE, "Автор" TEXT)
 LANGUAGE sql AS $$
-	SELECT doc_name, last_mod, CONCAT(teach.teacher_name, ' ', teach.teacher_surname) FROM docum_plan dp
-	LEFT JOIN teacher teach ON teach.teacher_id = dp.author_id;
+	SELECT doc_name, last_mod, (SELECT CONCAT(teach.teacher_name, ' ', teach.teacher_surname) FROM teacher teach WHERE teach.teacher_id = dp.author_id) FROM docum_plan dp;
 $$
 
 SELECT * FROM show_archive();
@@ -218,12 +249,11 @@ $$
 SELECT * FROM show_archive();
 
 DROP FUNCTION show_teacher();
-
+--------------------------------------------!!!!!!!!!!!!!!!!!!!!!!!----------------------------------------
 CREATE OR REPLACE FUNCTION show_teacher()
 RETURNS table("Имя преподавателя" TEXT, "Фамилия преподавателя" TEXT, "Факультет преподавателя" TEXT)
 LANGUAGE sql AS $$
-	SELECT t.teacher_name, t.teacher_surname, f.faculty_name FROM teacher t
-	LEFT JOIN faculty f ON t.teacher_faculty = f.faculty_id;
+	SELECT t.teacher_name, t.teacher_surname, (SELECT faculty_name FROM faculty f WHERE t.teacher_faculty = f.faculty_id) FROM teacher t;
 $$
 
 SELECT * FROM show_teacher();
@@ -548,3 +578,24 @@ DROP ROLE teacher;
 DROP ROLE administrator;
 
 SELECT * FROM users;
+SELECT * FROM show_archive();
+
+DROP FUNCTION show_select;
+---------------------------------!!!!!!!!!!!!!------------------------------------
+CREATE OR REPLACE FUNCTION show_select()
+RETURNS table("Название работы" TEXT, "Издательство" TEXT, "Дата публикации" DATE, "Автор" TEXT, "Факультет" TEXT)
+LANGUAGE plpgsql AS $$
+BEGIN
+	RETURN QUERY SELECT ar.publication_name, pub.pub_name, ar.publication_date, CONCAT(teach.teacher_name, ' ', teach.teacher_surname), 
+	(SELECT f.faculty_name FROM faculty f WHERE teach.teacher_faculty = f.faculty_id) FROM archive ar
+	LEFT JOIN publisher pub ON ar.pub_id = pub.publisher_id
+	LEFT JOIN teacher teach ON ar.pub_author = teach.teacher_id;
+END; $$
+
+SELECT * FROM show_select();
+--SELECT * FROM archive;
+SELECT * FROM student WHERE student_age > ALL (SELECT teacher_age FROM teacher);
+
+CREATE INDEX student_age_index ON student(student_age);
+CREATE INDEX archive_date_index ON archive(publication_date);
+CREATE INDEX faculty_faculty_index ON faculty(faculty_name);

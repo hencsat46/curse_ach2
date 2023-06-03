@@ -1,3 +1,4 @@
 #!/bin/bash
 
 cat /var/lib/pgadmin/storage/*/curse_ach > ~/prog_cpp/qt/curse_ach*/curse_ach.sql
+cp /var/lib/pgadmin/storage/*/$1 ~/prog_cpp/qt/curse_ach*/
