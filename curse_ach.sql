@@ -405,7 +405,7 @@ RETURNS INT AS $$
 BEGIN
 	CASE
 		WHEN author IN (SELECT CONCAT(teach.teacher_name, ' ', teach.teacher_surname) AS teacher FROM archive ar
-LEFT JOIN teacher teach ON ar.pub_author = teach.teacher_id) THEN
+			LEFT JOIN teacher teach ON ar.pub_author = teach.teacher_id) THEN
 			RETURN 1;
 		ELSE
 			RETURN 0;
@@ -599,3 +599,20 @@ SELECT * FROM student WHERE student_age > ALL (SELECT teacher_age FROM teacher);
 CREATE INDEX student_age_index ON student(student_age);
 CREATE INDEX archive_date_index ON archive(publication_date);
 CREATE INDEX faculty_faculty_index ON faculty(faculty_name);
+
+DROP FUNCTION update_teacher(TEXT, TEXT);
+CREATE OR REPLACE FUNCTION update_teacher(t_name TEXT, t_surname TEXT, old_name TEXT, old_surname TEXT)
+RETURNS VOID
+LANGUAGE plpgsql AS $$
+DECLARE 
+	rec RECORD;
+	update_cursor CURSOR FOR SELECT teacher_name, teacher_surname FROM teacher;
+BEGIN
+	FOR rec IN update_cursor LOOP
+		UPDATE teacher SET teacher_name = t_name, teacher_surname = t_surname WHERE teacher_name = old_name AND teacher_surname = old_surname;
+		EXIT WHEN NOT FOUND;
+	END LOOP;
+END; $$
+
+SELECT update_teacher()
+
