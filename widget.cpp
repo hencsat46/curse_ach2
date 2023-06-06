@@ -19,6 +19,7 @@ void Widget::shit_config() {
     connect(ui->w_disconnect_button, SIGNAL(clicked()), this, SLOT(db_disconnect()));
     connect(ui->stackedWidget, SIGNAL(currentChanged(int)), this, SLOT(get_tables()));
     connect(ui->w_edit_button, SIGNAL(clicked()), this, SLOT(show_edit_table()));
+    connect(ui->w_table, SIGNAL(clicked(const QModelIndex)), this, SLOT(temp_index(const QModelIndex)));
 
     set_color(ui->r_wcode_label, Qt::red);
     set_color(ui->r_wdata_label, Qt::red);
@@ -107,8 +108,8 @@ void Widget::show_table() {
     int table = ui->w_tables_box->currentIndex();
     qDebug() << table;
     sql_model = new QSqlQueryModel();
-    table_model = new QSqlTableModel(nullptr, db);
-    table_model->QSqlQueryModel::setQuery("SELECT * FROM show_faculty();", db);
+    //table_model = new QSqlTableModel(nullptr, db);
+    //table_model->QSqlQueryModel::setQuery("SELECT * FROM show_faculty();", db);
     if (status) {
         switch(table) {
             case 0:
@@ -132,15 +133,19 @@ void Widget::show_table() {
     check_permission(sql_model->lastError().nativeErrorCode());
 
     this->ui->w_table->horizontalHeader()->setStretchLastSection(true);
-    this->ui->w_table->setModel(table_model);
+    this->ui->w_table->setModel(sql_model);
     this->ui->w_table->resizeColumnsToContents();
-
-    qDebug() << table_model->fieldIndex("4");
+    //ui->w_table->
+    //qDebug() << table_model->fieldIndex("4");
 
     }
 
     //
 
+}
+
+void Widget::temp_index(const QModelIndex &index) {
+    qDebug() << index.row();
 }
 
 void Widget::show_edit_table() {

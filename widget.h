@@ -58,6 +58,7 @@ public slots:
     void db_disconnect();
     void get_tables();
     void show_edit_table();
+    void temp_index(const QModelIndex &index);
     //void table_changed();
 
 };
