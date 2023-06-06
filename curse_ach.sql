@@ -1,3 +1,4 @@
+-------------------------------------START CREATE TABLE-----------------------------------------
 DROP TABLE teacher;
 
 CREATE TABLE teacher (
@@ -7,12 +8,12 @@ CREATE TABLE teacher (
 	teacher_surname TEXT,
 	teacher_faculty INT,
 	teacher_last_doc INT,
+	teacher_age INT,
+	doc_in_process BOOL,
 	FOREIGN KEY (teacher_faculty) REFERENCES faculty(faculty_id),
 	FOREIGN KEY (teacher_last_doc) REFERENCES docum_plan(doc_id)
 
 );
-
-ALTER TABLE teacher ADD COLUMN teacher_age INT;
 
 DROP TABLE student;
 CREATE TABLE student (
@@ -26,16 +27,62 @@ CREATE TABLE student (
 
 );
 
-DROP FUNCTION insert_student;
-CREATE OR REPLACE FUNCTION insert_student(s_name TEXT, s_surname TEXT, s_faculty INT, s_age INT)
-RETURNS VOID
-LANGUAGE plpgsql AS $$
-BEGIN
-	INSERT INTO student(student_name, student_surname, student_faculty, student_age) VALUES (s_name, s_surname, s_faculty, s_age);
-END; $$
+DROP TABLE docum_plan;
+CREATE TABLE docum_plan (
 
-SELECT * FROM insert_student('Джиган', 'Шабидульевич', 1, 19);
-SELECT * FROM faculty;
+	doc_id SERIAL PRIMARY KEY,
+	doc_name TEXT,
+	last_mod DATE,
+	author_id INT,
+	FOREIGN KEY (author_id) REFERENCES teacher(teacher_id)
+
+);
+
+CREATE TABLE faculty (
+
+	faculty_id SERIAL PRIMARY KEY,
+	faculty_name TEXT NOT NULL,
+);
+
+CREATE TABLE publisher (
+
+	publisher_id SERIAL PRIMARY KEY,
+	general_manager TEXT,
+	address TEXT,
+	pub_name TEXT
+
+);
+
+CREATE TABLE archive (
+
+	publication_id SERIAL,
+	publication_date DATE,
+	pub_id INT,
+	publication_name TEXT,
+	pub_author INT,
+	FOREIGN KEY (pub_author) REFERENCES teacher(teacher_id),
+	FOREIGN KEY (pub_id) REFERENCES publisher(publisher_id)
+
+);
+
+CREATE TABLE users (
+	u_name TEXT,
+	u_surname TEXT,
+	username TEXT,
+	passw TEXT,
+	user_role TEXT
+
+);
+----------------------------------------END CREATE TABLE------------------------------------------
+
+
+
+
+
+
+
+-----------------------------------------START SHOW FUNCTIONS-------------------------------------
+
 CREATE OR REPLACE FUNCTION show_student()
 RETURNS table("ФИО студента" TEXT, "Возраст" INT, "Факультет" TEXT)
 LANGUAGE plpgsql AS $$
@@ -45,6 +92,259 @@ BEGIN
 END; $$
 
 SELECT * FROM show_student();
+
+
+CREATE OR REPLACE FUNCTION show_docum_plan()
+RETURNS table("Название работы" TEXT, "Последнее изменение" DATE, "Автор" TEXT)
+LANGUAGE sql AS $$
+	SELECT doc_name, last_mod, (SELECT CONCAT(teach.teacher_name, ' ', teach.teacher_surname) FROM teacher teach WHERE teach.teacher_id = dp.author_id) FROM docum_plan dp;
+$$
+
+SELECT * FROM show_student();
+
+
+CREATE OR REPLACE FUNCTION show_archive()
+RETURNS table("Название работы" TEXT, "Издательство" TEXT, "Дата публикации" DATE, "Автор" TEXT)
+LANGUAGE sql AS $$
+	SELECT ar.publication_name, pub.pub_name, ar.publication_date, CONCAT(teach.teacher_name, ' ', teach.teacher_surname) FROM archive ar
+	LEFT JOIN publisher pub ON ar.pub_id = pub.publisher_id
+	LEFT JOIN teacher teach ON ar.pub_author = teach.teacher_id;
+$$
+
+SELECT * FROM show_archive();
+
+
+
+CREATE OR REPLACE FUNCTION show_publisher()
+RETURNS table("Название издательства" TEXT, "Главный директор" TEXT, "Адрес" TEXT)
+LANGUAGE sql AS $$
+	SELECT pub_name, address, general_manager FROM publisher;
+$$
+
+SELECT * FROM show_publisher();
+
+
+CREATE OR REPLACE FUNCTION show_teacher()
+RETURNS table("Имя преподавателя" TEXT, "Фамилия преподавателя" TEXT, "Факультет преподавателя" TEXT)
+LANGUAGE sql AS $$
+	SELECT t.teacher_name, t.teacher_surname, (SELECT faculty_name FROM faculty f WHERE t.teacher_faculty = f.faculty_id) FROM teacher t;
+$$
+
+SELECT * FROM show_teacher();
+
+
+CREATE OR REPLACE FUNCTION show_faculty()
+RETURNS table("Название кафедры" TEXT, "Количество преподавателей" INT)
+LANGUAGE sql AS $$
+	SELECT faculty_name, teacher_count FROM faculty;
+$$
+
+SELECT * FROM show_faculty();
+
+
+
+DROP FUNCTION insert_student;
+
+------------------------------------------END SHOW FUNCTIONS-------------------------------------------------
+
+
+
+
+
+
+----------------------------------------------START INSERT FUNCTIONS-------------------------------------------
+
+
+CREATE OR REPLACE FUNCTION insert_student(s_name TEXT, s_surname TEXT, s_faculty INT, s_age INT)
+RETURNS VOID
+LANGUAGE plpgsql AS $$
+BEGIN
+	INSERT INTO student(student_name, student_surname, student_faculty, student_age) VALUES (s_name, s_surname, s_faculty, s_age);
+END; $$
+
+
+CREATE OR REPLACE PROCEDURE insert_docum_plan(d_name TEXT, l_mode DATE, t_name TEXT)
+LANGUAGE plpgsql AS $$
+DECLARE 
+	t_id INT;
+	status INT;
+BEGIN
+	t_id = (SELECT teacher_id FROM teacher WHERE CONCAT(teacher_name, ' ', teacher_surname) = t_name);
+	IF t_id IS NULL THEN
+		status = -1;
+	END IF;
+	INSERT INTO docum_plan(doc_name, last_mod, author_id) VALUES (d_name, l_mode, t_id);
+	CALL upgrade_status(t_id);
+	IF status = -1 THEN 
+		ROLLBACK;
+	ELSE
+		COMMIT;
+	END IF;
+	
+END; $$
+
+
+
+
+CREATE OR REPLACE PROCEDURE add_temp(temp_name TEXT, temp_mod DATE, status BOOL)
+LANGUAGE plpgsql AS $$
+BEGIN
+	INSERT INTO docum_plan(doc_name, last_mod, in_process) VALUES (temp_name, temp_mod, status);
+END; $$
+
+
+
+
+
+CREATE OR REPLACE PROCEDURE add_faculty(input_name TEXT)
+LANGUAGE plpgsql AS $$
+BEGIN
+	INSERT INTO faculty(faculty_name) VALUES (input_name);
+END; $$
+
+
+
+
+
+CREATE OR REPLACE PROCEDURE add_document(p_name TEXT, p_auth INT, p_pub INT, p_date DATE)
+LANGUAGE sql AS $$
+	INSERT INTO archive(publication_name, pub_author, pub_id, publication_date) VALUES (p_name, p_auth, p_pub, p_date);
+$$
+
+
+
+CREATE OR REPLACE FUNCTION strong_insert(user_login TEXT, passwd TEXT, user_role TEXT)
+RETURNS INT
+LANGUAGE plpgsql AS $$
+BEGIN
+	IF (SELECT COUNT(*) FROM users WHERE username = user_login AND passwd = passw) > 0 THEN
+		RETURN 1;
+	END IF;
+	INSERT INTO users(username, passw, user_role) VALUES (user_login, passwd, user_role);
+	RETURN 0;
+END; $$
+
+
+
+--------------------------------------------------END INSERT FUNCTIONS----------------------------------------------
+
+
+--------------------------------------------------START UPDATE FUNCTIONS-------------------------------------------------
+
+CREATE OR REPLACE TRIGGER update_count
+AFTER INSERT ON teacher
+FOR EACH ROW
+EXECUTE PROCEDURE update_faculty();
+
+CREATE OR REPLACE FUNCTION update_faculty()
+RETURNS trigger AS $$
+DECLARE
+	in_id INT;
+BEGIN
+	in_id = (SELECT teacher_faculty FROM teacher ORDER BY teacher_id DESC LIMIT 1);
+	UPDATE faculty SET teacher_count = teacher_count + 1 WHERE faculty_id = in_id;
+	RETURN NEW;
+END; $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION update_
+
+
+
+CREATE OR REPLACE FUNCTION update_teacher(old_table teacher_view, new_table teacher_view)
+RETURNS INT AS $$
+DECLARE
+	temp_faculty INT;
+BEGIN
+	UPDATE teacher
+		SET teacher_name = new_table.teacher_name,
+		teacher_surname = new_table.teacher_surname
+		WHERE teacher_id = old_table.teacher_id;
+		
+	IF new_table.faculty_name IN (SELECT faculty_name FROM faculty) AND new_table.faculty_name IS NOT NULL THEN
+		temp_faculty = (SELECT faculty_id FROM faculty WHERE new_table.faculty_name = faculty.faculty_name);
+		UPDATE teacher
+		SET teacher_faculty = temp_faculty;
+		
+	ELSE 
+		RETURN -1;
+	END IF;	
+	RETURN 0;
+END; $$
+LANGUAGE plpgsql;
+
+
+
+CREATE OR REPLACE PROCEDURE upgrade_status(a_id INT)
+LANGUAGE plpgsql AS $$
+BEGIN
+	UPDATE teacher SET doc_in_process = 'true' WHERE teacher_id = a_id;
+END; $$
+
+CREATE OR REPLACE CONSTRAINT TRIGGER upgrade_status_t
+BEFORE INSERT ON docum_plan
+FOR EACH ROW
+EXECUTE PROCEDURE upgrade_status();
+
+
+
+CREATE OR REPLACE FUNCTION update_teacher(t_name TEXT, t_surname TEXT, old_name TEXT, old_surname TEXT)
+RETURNS VOID
+LANGUAGE plpgsql AS $$
+DECLARE 
+	rec RECORD;
+	update_cursor CURSOR FOR SELECT teacher_name, teacher_surname FROM teacher;
+BEGIN
+	FOR rec IN update_cursor LOOP
+		UPDATE teacher SET teacher_name = t_name, teacher_surname = t_surname WHERE teacher_name = old_name AND teacher_surname = old_surname;
+		EXIT WHEN NOT FOUND;
+	END LOOP;
+END; $$
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---------------------------------------------------END UPDATE FUNCTIONS-----------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 DROP FUNCTION check_faculty;
 
 CREATE OR REPLACE FUNCTION check_faculty(t_name TEXT, t_surname TEXT, t_faculty TEXT)
@@ -103,6 +403,9 @@ BEGIN
 	DROP TABLE rename_rows;
 END; $$
 
+
+
+
 SELECT * FROM get_tables();
 
 DROP TABLE rename_rows;
@@ -129,36 +432,14 @@ SELECT * FROM faculty;
 SELECT faculty_id FROM faculty WHERE faculty_name = 't_faculty';
 DROP TABLE teacher CASCADE;
 
-DROP TABLE docum_plan;
-CREATE TABLE docum_plan (
 
-	doc_id SERIAL PRIMARY KEY,
-	doc_name TEXT,
-	last_mod DATE,
-	author_id INT,
-	FOREIGN KEY (author_id) REFERENCES teacher(teacher_id)
-
-);
 
 INSERT INTO teacher(teacher_name, teacher_surname, teacher_faculty) VALUES ('Никита', 'Хукумкин', 1);
 DELETE FROM teacher WHERE teacher_id = 4;
 
 
 
-CREATE OR REPLACE TRIGGER update_count
-AFTER INSERT ON teacher
-FOR EACH ROW
-EXECUTE PROCEDURE update_faculty();
 
-CREATE OR REPLACE FUNCTION update_faculty()
-RETURNS trigger AS $$
-DECLARE
-	in_id INT;
-BEGIN
-	in_id = (SELECT teacher_faculty FROM teacher ORDER BY teacher_id DESC LIMIT 1);
-	UPDATE faculty SET teacher_count = teacher_count + 1 WHERE faculty_id = in_id;
-	RETURN NEW;
-END; $$ LANGUAGE plpgsql;
 
 
 
@@ -172,111 +453,42 @@ SELECT * FROM docum_plan;
 
 DROP TABLE docum_plan CASCADE;
 
-CREATE TABLE faculty (
-
-	faculty_id SERIAL PRIMARY KEY,
-	faculty_name TEXT NOT NULL,
-
-);
 
 ALTER TABLE faculty ADD COLUMN teacher_count INT;
 
 SELECT * FROM teacher;
 
-CREATE TABLE publisher (
 
-	publisher_id SERIAL PRIMARY KEY,
-	general_manager TEXT,
-	address TEXT,
-	pub_name TEXT
-
-);
 
 DROP TABLE publisher CASCADE;
 
-CREATE TABLE archive (
 
-	publication_id SERIAL,
-	publication_date DATE,
-	pub_id INT,
-	publication_name TEXT,
-	pub_author INT,
-	FOREIGN KEY (pub_author) REFERENCES teacher(teacher_id),
-	FOREIGN KEY (pub_id) REFERENCES publisher(publisher_id)
-
-);
 
 DROP TABLE archive;
 
-CREATE OR REPLACE PROCEDURE add_temp(temp_name TEXT, temp_mod DATE, status BOOL)
-LANGUAGE plpgsql AS $$
-BEGIN
-	INSERT INTO docum_plan(doc_name, last_mod, in_process) VALUES (temp_name, temp_mod, status);
-END; $$
 
-CREATE OR REPLACE PROCEDURE add_faculty(input_name TEXT)
-LANGUAGE plpgsql AS $$
-BEGIN
-	INSERT INTO faculty(faculty_name) VALUES (input_name);
-END; $$
-
-CREATE OR REPLACE PROCEDURE add_document(p_name TEXT, p_auth INT, p_pub INT, p_date DATE)
-LANGUAGE sql AS $$
-	INSERT INTO archive(publication_name, pub_author, pub_id, publication_date) VALUES (p_name, p_auth, p_pub, p_date);
-$$
 
 DROP FUNCTION show_docum_plan;
 ----------------------------!!!!!!!!!!!!!!!!!!!!---------------------------
-CREATE OR REPLACE FUNCTION show_docum_plan()
-RETURNS table("Название работы" TEXT, "Последнее изменение" DATE, "Автор" TEXT)
-LANGUAGE sql AS $$
-	SELECT doc_name, last_mod, (SELECT CONCAT(teach.teacher_name, ' ', teach.teacher_surname) FROM teacher teach WHERE teach.teacher_id = dp.author_id) FROM docum_plan dp;
-$$
 
 SELECT * FROM show_archive();
 
 SELECT * FROM show_docum_plan();
 
 DROP FUNCTION show_archive();
-CREATE OR REPLACE FUNCTION show_archive()
-RETURNS table("Название работы" TEXT, "Издательство" TEXT, "Дата публикации" DATE, "Автор" TEXT)
-LANGUAGE sql AS $$
-	SELECT ar.publication_name, pub.pub_name, ar.publication_date, CONCAT(teach.teacher_name, ' ', teach.teacher_surname) FROM archive ar
-	LEFT JOIN publisher pub ON ar.pub_id = pub.publisher_id
-	LEFT JOIN teacher teach ON ar.pub_author = teach.teacher_id;
-$$
 
-SELECT * FROM show_archive();
 
 DROP FUNCTION show_teacher();
 --------------------------------------------!!!!!!!!!!!!!!!!!!!!!!!----------------------------------------
-CREATE OR REPLACE FUNCTION show_teacher()
-RETURNS table("Имя преподавателя" TEXT, "Фамилия преподавателя" TEXT, "Факультет преподавателя" TEXT)
-LANGUAGE sql AS $$
-	SELECT t.teacher_name, t.teacher_surname, (SELECT faculty_name FROM faculty f WHERE t.teacher_faculty = f.faculty_id) FROM teacher t;
-$$
 
-SELECT * FROM show_teacher();
 
 DROP FUNCTION show_publisher();
 
-CREATE OR REPLACE FUNCTION show_publisher()
-RETURNS table("Название издательства" TEXT, "Главный директор" TEXT, "Адрес" TEXT)
-LANGUAGE sql AS $$
-	SELECT pub_name, address, general_manager FROM publisher;
-$$
 
-SELECT * FROM show_publisher();
 
 DROP FUNCTION show_faculty;
 
-CREATE OR REPLACE FUNCTION show_faculty()
-RETURNS table("Название кафедры" TEXT, "Количество преподавателей" INT)
-LANGUAGE sql AS $$
-	SELECT faculty_name, teacher_count FROM faculty;
-$$
 
-SELECT * FROM show_faculty();
 
 
 SELECT * FROM publisher;
@@ -297,27 +509,7 @@ SELECT * FROM teacher;
 SELECT * FROM faculty;
 
 ------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION update_teacher(old_table teacher_view, new_table teacher_view)
-RETURNS INT AS $$
-DECLARE
-	temp_faculty INT;
-BEGIN
-	UPDATE teacher
-		SET teacher_name = new_table.teacher_name,
-		teacher_surname = new_table.teacher_surname
-		WHERE teacher_id = old_table.teacher_id;
-	COMMIT;	
-	IF new_table.faculty_name IN (SELECT faculty_name FROM faculty) AND new_table.faculty_name IS NOT NULL THEN
-		temp_faculty = (SELECT faculty_id FROM faculty WHERE new_table.faculty_name = faculty.faculty_name);
-		UPDATE teacher
-		SET teacher_faculty = temp_faculty;
-		COMMIT;
-	ELSE
-		RETURN -1;
-	END IF;	
-	RETURN 0;
-END; $$
-LANGUAGE plpgsql;
+
 -----------------------------------------------------------------------------
 
 SELECT * FROM docum_plan;
@@ -325,42 +517,12 @@ SELECT * FROM docum_plan;
 SELECT * FROM show_docum_plan();
 DROP FUNCTION insert_docum_plan;
 
-CREATE OR REPLACE PROCEDURE insert_docum_plan(d_name TEXT, l_mode DATE, t_name TEXT)
-LANGUAGE plpgsql AS $$
-DECLARE 
-	t_id INT;
-	status INT;
-BEGIN
-	t_id = (SELECT teacher_id FROM teacher WHERE CONCAT(teacher_name, ' ', teacher_surname) = t_name);
-	IF t_id IS NULL THEN
-		status = -1;
-	END IF;
-	INSERT INTO docum_plan(doc_name, last_mod, author_id) VALUES (d_name, l_mode, t_id);
-	CALL upgrade_status(t_id);
-	IF status = -1 THEN 
-		ROLLBACK;
-	ELSE
-		COMMIT;
-	END IF;
-	
-END; $$
 
 
 
 DROP PROCEDURE upgrade_status CASCADE;
 
-CREATE OR REPLACE PROCEDURE upgrade_status(a_id INT)
-LANGUAGE plpgsql AS $$
-BEGIN
-	UPDATE teacher SET doc_in_process = 'true' WHERE teacher_id = a_id;
-END; $$
 
-SELECT * FROM aa;
-
-CREATE OR REPLACE CONSTRAINT TRIGGER upgrade_status_t
-BEFORE INSERT ON docum_plan
-FOR EACH ROW
-EXECUTE PROCEDURE upgrade_status();
 
 DELETE FROM docum_plan WHERE doc_name = 'a';
 
@@ -455,14 +617,7 @@ SELECT * FROM teacher;
 
 SELECT rolname FROM pg_roles;
 
-CREATE TABLE users (
-	u_name TEXT,
-	u_surname TEXT,
-	username TEXT,
-	passw TEXT,
-	user_role TEXT
 
-);
 SELECT * FROM users;
 DROP TABLE users;
 
@@ -477,16 +632,7 @@ CREATE ROLE administrator LOGIN;
 
 DROP FUNCTION strong_insert;
 
-CREATE OR REPLACE FUNCTION strong_insert(user_login TEXT, passwd TEXT, user_role TEXT)
-RETURNS INT
-LANGUAGE plpgsql AS $$
-BEGIN
-	IF (SELECT COUNT(*) FROM users WHERE username = user_login AND passwd = passw) > 0 THEN
-		RETURN 1;
-	END IF;
-	INSERT INTO users(username, passw, user_role) VALUES (user_login, passwd, user_role);
-	RETURN 0;
-END; $$
+
 
 SELECT * FROM strong_insert('яяя', '123', 'asdf');
 SELECT * FROM strong_insert('ad', 'ad', 'administrator');
@@ -601,18 +747,7 @@ CREATE INDEX archive_date_index ON archive(publication_date);
 CREATE INDEX faculty_faculty_index ON faculty(faculty_name);
 
 DROP FUNCTION update_teacher(TEXT, TEXT);
-CREATE OR REPLACE FUNCTION update_teacher(t_name TEXT, t_surname TEXT, old_name TEXT, old_surname TEXT)
-RETURNS VOID
-LANGUAGE plpgsql AS $$
-DECLARE 
-	rec RECORD;
-	update_cursor CURSOR FOR SELECT teacher_name, teacher_surname FROM teacher;
-BEGIN
-	FOR rec IN update_cursor LOOP
-		UPDATE teacher SET teacher_name = t_name, teacher_surname = t_surname WHERE teacher_name = old_name AND teacher_surname = old_surname;
-		EXIT WHEN NOT FOUND;
-	END LOOP;
-END; $$
+
 
 SELECT update_teacher()
 
