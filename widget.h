@@ -12,9 +12,13 @@
 #include <QTableWidget>
 #include <QLabel>
 #include <QList>
-#include "edit_table.h"
 #include "QStringListModel"
 #include <QSqlTableModel>
+#include "edit_archive.h"
+#include "edit_docum_plan.h"
+#include <QSqlRecord>
+#include <QSqlField>
+#include <QVariant>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Widget; }
@@ -27,13 +31,13 @@ public:
     Widget(QWidget *parent = nullptr);
     ~Widget();
     void set_color(QLabel *label, QColor color);
-
+    QString role = "";
+    void close_db(QString connection_name);
 
 private:
     Ui::Widget *ui;
     QStandardItemModel *model;
-    QString role;
-    void close_db(QString connection_name);
+
     bool start_db_user();
     bool start_db_teacher();
     bool start_db_admin();
@@ -44,8 +48,10 @@ private:
     void close_mode_connection(QString connection_name);
     QList<QString> table_list;
     bool check_permission(QString code);
-    Edit_table table;
     QSqlTableModel* table_model;
+    Edit_archive archive;
+    Edit_docum_plan docum_plan;
+    QModelIndex table_index;
 
 
 public slots:
@@ -57,8 +63,8 @@ public slots:
     void auth_link();
     void db_disconnect();
     void get_tables();
-    void show_edit_table();
     void temp_index(const QModelIndex &index);
+    void show_edit_archive();
     //void table_changed();
 
 };

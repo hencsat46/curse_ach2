@@ -183,9 +183,10 @@ BEGIN
 	
 END; $$
 
-
-
-
+CALL insert_docum_plan('я это я', '08.11.2002', 'Компот Яблочный');
+select * from show_docum_plan()
+select * from show_teacher()
+select * from teacher;
 
 
 
@@ -322,30 +323,76 @@ BEGIN
 	END LOOP;
 END; $$
 
-	
-
-CREATE OR REPLACE FUNCTION update_archive(old_name TEXT, new_name TEXT, new_date DATE, new_publisher INT, new_author INT)------------------------------------------------------------------------------------------
-RETURNS VOID
+CREATE OR REPLACE FUNCTION get_author_id(fio TEXT)------------------------------------------------------------------------------------------
+RETURNS INT
 LANGUAGE plpgsql AS $$
 DECLARE
-	table_id INT;
+	t_id INT;
 BEGIN
-	table_id = (SELECT publication_id FROM archive WHERE publication_name = old_name);
-	UPDATE archive SET publication_name = new_name, publication_date = new_date, pub_id = new_publisher, pub_author = new_author;
+	t_id = (SELECT teacher_id FROM teacher WHERE CONCAT(teacher_name, ' ', teacher_surname) = fio);
+	IF t_id IS NOT NULL THEN
+		RETURN t_id;
+	END IF;
+	RETURN -1;
 END; $$
 
+CREATE OR REPLACE FUNCTION get_publisher()
+RETURNS table("Название" TEXT, "id" INT)
+LANGUAGE sql AS $$
 
-CREATE OR REPLACE FUNCTION update_docum_plan(old_author INT, new_author INT, new_date DATE, new_name TEXT)------------------------------------------------------------------------------------------
-RETURNS VOID
+	SELECT pub_name, publisher_id FROM publisher;
+$$
+select * from publisher;
+SELECT * FROM get_publisher();
+
+drop function update_archive;
+CREATE OR REPLACE FUNCTION update_archive(old_name TEXT, new_name TEXT, new_date DATE, new_publisher TEXT, new_author TEXT)------------------------------------------------------------------------------------------
+RETURNS INT
 LANGUAGE plpgsql AS $$
 DECLARE
 	table_id INT;
-BEGIN 
-	table_id = (SELECT doc_id FROM docum_plan WHERE old_author = author_id);
-	UPDATE docum_plan SET doc_name = new_name, last_mod = new_date, author_id = new_author;
+	new_publisher_id INT;
+	new_author_id INT;
+BEGIN
+	new_author_id = (SELECT teacher_id FROM teacher WHERE CONCAT(teacher_name, ' ', teacher_surname) = new_author);
+	new_publisher_id = (SELECT publisher_id FROM publisher WHERE new_publisher = pub_name);
+	IF new_author_id IS NOT NULL AND new_publisher_id IS NOT NULL THEN
+		table_id = (SELECT publication_id FROM archive WHERE publication_name = old_name);
+		UPDATE archive SET publication_name = new_name, publication_date = new_date, pub_id = new_publisher_id, pub_author = new_author_id WHERE publication_name = old_name;
+		RETURN 0;
+	END IF;
+	RETURN -1;
 END; $$
 
 
+
+select * from show_archive();
+select * from archive;
+delete from archive where publication_id = 2;
+select * from teacher;
+SELECT * FROM update_archive('Работа номер 1', 'Работа номер 2', '07.08.2003', 'Иваникс', 'Гнилетруп Сухостой');
+
+SELECT * FROM show_docum_plan()
+
+CREATE OR REPLACE FUNCTION update_docum_plan(old_author TEXT, new_author TEXT, new_date DATE, new_name TEXT)------------------------------------------------------------------------------------------
+RETURNS INT
+LANGUAGE plpgsql AS $$
+DECLARE
+	table_id INT;
+	t_id INT;
+	new_teacher_id INT;
+BEGIN 
+	t_id = (SELECT teacher_id FROM teacher WHERE CONCAT(teacher_name, ' ', teacher_surname) = old_author);
+	new_teacher_id = (SELECT teacher_id FROM teacher WHERE CONCAT(teacher_name, ' ', teacher_surname) = new_author);
+	table_id = (SELECT doc_id FROM docum_plan WHERE t_id = author_id);
+	IF t_id IS NOT NULL AND new_teacher_id IS NOT NULL THEN
+		UPDATE docum_plan SET doc_name = new_name, last_mod = new_date, author_id = new_teacher_id WHERE doc_id = table_id;
+		RETURN 0;
+	END IF;
+	RETURN -1;
+END; $$
+
+select * from update_docum_plan('Компот Яблочный', 'Компот Яблочный', '11.10.2005', 'А теперь не я');
 
 ---------------------------------------------------END UPDATE FUNCTIONS-----------------------------------------------------
 
@@ -460,6 +507,7 @@ CREATE ROLE superuser LOGIN PASSWORD 'forstudy';
 GRANT administrator TO superuser;
 GRANT INSERT ON users TO superuser;
 GRANT UPDATE ON users TO superuser;
+GRANT SELECT ON users TO superuser;
 
 
 ---------------------------------------------------------END ROLES-----------------------------------------------------
@@ -472,7 +520,7 @@ GRANT UPDATE ON users TO superuser;
 
 
 
-
+select * from show_archive()
 
 
 

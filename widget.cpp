@@ -18,8 +18,8 @@ void Widget::shit_config() {
     connect(ui->r_registration_button, SIGNAL(clicked()), this, SLOT(registration()));
     connect(ui->w_disconnect_button, SIGNAL(clicked()), this, SLOT(db_disconnect()));
     connect(ui->stackedWidget, SIGNAL(currentChanged(int)), this, SLOT(get_tables()));
-    connect(ui->w_edit_button, SIGNAL(clicked()), this, SLOT(show_edit_table()));
     connect(ui->w_table, SIGNAL(clicked(const QModelIndex)), this, SLOT(temp_index(const QModelIndex)));
+    connect(ui->w_edit_button, SIGNAL(clicked()), this, SLOT(show_edit_archive()));
 
     set_color(ui->r_wcode_label, Qt::red);
     set_color(ui->r_wdata_label, Qt::red);
@@ -59,7 +59,7 @@ void Widget::get_tables() {
         QSqlDatabase db = QSqlDatabase::addDatabase("QPSQL", "superuser_connection");
         db.setHostName("localhost");
         db.setDatabaseName("curse_ach");
-        db.setUserName("postgres");
+        db.setUserName("superuser");
         db.setPassword("forstudy");
         bool status = db.open();
         table_list = QList<QString>();
@@ -140,20 +140,10 @@ void Widget::show_table() {
 
     }
 
-    //
+
 
 }
 
-void Widget::temp_index(const QModelIndex &index) {
-    qDebug() << index.row();
-}
-
-void Widget::show_edit_table() {
-
-    table.show();
-    table.pass_table(sql_model);
-
-}
 
 void Widget::close_mode_connection(QString connection_name) {
     if (sql_model != nullptr) {
@@ -192,4 +182,29 @@ bool Widget::check_permission(QString code) {
 
     ui->w_waccess_label->hide();
     return true;
+}
+
+void Widget::temp_index(const QModelIndex &index) {
+    table_index = index;
+}
+
+void Widget::show_edit_archive() {
+    int edit_index = ui->w_tables_box->currentIndex();
+    QString table_id;
+    switch(edit_index) {
+    case 0:
+        table_id = ui->w_table->model()->data(table_index.siblingAtRow(table_index.row()).siblingAtColumn(0)).toString();
+        archive.show();
+        archive.get_teacher(table_id, role);
+        break;
+    case 1:
+        table_id = ui->w_table->model()->data(table_index.siblingAtRow(table_index.row()).siblingAtColumn(2)).toString();
+        docum_plan.show();
+        docum_plan.get_teacher(table_id, role);
+        break;
+
+    }
+
+
+
 }

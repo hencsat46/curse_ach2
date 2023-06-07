@@ -20,28 +20,6 @@ void Edit_table::pass_table(QSqlQueryModel* table) {
 
 }
 
-Qt::ItemFlags QStringListModel::flags(const QModelIndex &index) const
-{
-    if (!index.isValid())
-        return Qt::ItemIsEnabled;
-
-    return QAbstractItemModel::flags(index) | Qt::ItemIsEditable;
-}
-
-bool QStringListModel::setData(const QModelIndex &index,
-                               const QVariant &value, int role)
-{
-    if (index.isValid() && role == Qt::EditRole) {
-
-        stringList().replace(index.row(), value.toString());
-        emit dataChanged(index, index);
-        return true;
-    }
-    return false;
-}
-
-
-
 
 Edit_table::~Edit_table() {
     delete ui;

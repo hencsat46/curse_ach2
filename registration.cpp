@@ -85,7 +85,7 @@ void Widget::box_changed() {
 bool Widget::start_db_superuser(QSqlDatabase db) {
     db.setHostName("localhost");
     db.setDatabaseName("curse_ach");
-    db.setUserName("postgres");
+    db.setUserName("superuser");
     db.setPassword("forstudy");
     return db.open();
 }
