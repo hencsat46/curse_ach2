@@ -11,6 +11,7 @@ CONFIG += c++17
 SOURCES += \
     edit_archive.cpp \
     edit_docum_plan.cpp \
+    edit_faculty.cpp \
     login.cpp \
     main.cpp \
     registration.cpp \
@@ -19,11 +20,13 @@ SOURCES += \
 HEADERS += \
     edit_archive.h \
     edit_docum_plan.h \
+    edit_faculty.h \
     widget.h
 
 FORMS += \
     edit_archive.ui \
     edit_docum_plan.ui \
+    edit_faculty.ui \
     widget.ui
 
 # Default rules for deployment.

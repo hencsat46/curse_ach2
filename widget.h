@@ -16,6 +16,7 @@
 #include <QSqlTableModel>
 #include "edit_archive.h"
 #include "edit_docum_plan.h"
+#include "edit_faculty.h"
 #include <QSqlRecord>
 #include <QSqlField>
 #include <QVariant>
@@ -51,6 +52,7 @@ private:
     QSqlTableModel* table_model;
     Edit_archive archive;
     Edit_docum_plan docum_plan;
+    Edit_faculty faculty;
     QModelIndex table_index;
 
 

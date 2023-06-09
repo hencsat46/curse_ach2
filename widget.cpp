@@ -202,7 +202,11 @@ void Widget::show_edit_archive() {
         docum_plan.show();
         docum_plan.get_teacher(table_id, role);
         break;
-
+    case 2:
+        table_id = ui->w_table->model()->data(table_index.siblingAtRow(table_index.row()).siblingAtColumn(0)).toString();
+        faculty.show();
+        faculty.get_teacher(table_id, role);
+        break;
     }
 
 
