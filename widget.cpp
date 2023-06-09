@@ -207,6 +207,11 @@ void Widget::show_edit_archive() {
         faculty.show();
         faculty.get_teacher(table_id, role);
         break;
+    case 3:
+        table_id = ui->w_table->model()->data(table_index.siblingAtRow(table_index.row()).siblingAtColumn(0)).toString();
+        publisher.show();
+        publisher.get_teacher(table_id, role);
+        break;
     }
 
 

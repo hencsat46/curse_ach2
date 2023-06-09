@@ -17,6 +17,7 @@
 #include "edit_archive.h"
 #include "edit_docum_plan.h"
 #include "edit_faculty.h"
+#include "edit_pub.h"
 #include <QSqlRecord>
 #include <QSqlField>
 #include <QVariant>
@@ -53,6 +54,7 @@ private:
     Edit_archive archive;
     Edit_docum_plan docum_plan;
     Edit_faculty faculty;
+    Edit_pub publisher;
     QModelIndex table_index;
 
 

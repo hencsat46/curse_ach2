@@ -12,6 +12,7 @@ SOURCES += \
     edit_archive.cpp \
     edit_docum_plan.cpp \
     edit_faculty.cpp \
+    edit_pub.cpp \
     login.cpp \
     main.cpp \
     registration.cpp \
@@ -21,12 +22,14 @@ HEADERS += \
     edit_archive.h \
     edit_docum_plan.h \
     edit_faculty.h \
+    edit_pub.h \
     widget.h
 
 FORMS += \
     edit_archive.ui \
     edit_docum_plan.ui \
     edit_faculty.ui \
+    edit_pub.ui \
     widget.ui
 
 # Default rules for deployment.

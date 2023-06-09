@@ -77,7 +77,7 @@ CREATE TABLE users (------------------------------------------------------------
 
 
 
-
+delete from archive where publication_name = 'говно';
 
 
 
@@ -155,7 +155,7 @@ DROP FUNCTION insert_student;
 ----------------------------------------------START INSERT FUNCTIONS-------------------------------------------
 
 
-CREATE OR REPLACE FUNCTION insert_student(s_name TEXT, s_surname TEXT, s_faculty INT, s_age INT)------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION insert_student(s_name TEXT, s_surname TEXT, s_faculty INT, s_age INT)
 RETURNS VOID
 LANGUAGE plpgsql AS $$
 BEGIN
@@ -183,8 +183,8 @@ END; $$
 select * from faculty;
 
 SELECT * FROM shit();
-
-
+call insert_docum_plan('asdf', '1.1.2003', 'Виктор Викторович')
+select * from docum_plan;
 CREATE OR REPLACE PROCEDURE insert_docum_plan(d_name TEXT, l_mode DATE, t_name TEXT)------------------------------------------------------------------------------------------
 LANGUAGE plpgsql AS $$
 DECLARE 
@@ -212,26 +212,47 @@ select * from teacher;
 
 
 
+CALL add_faculty('КБ-4');
 
-
-CREATE OR REPLACE PROCEDURE add_faculty(input_name TEXT)------------------------------------------------------------------------------------------
+CREATE OR REPLACE PROCEDURE add_faculty(input_name TEXT)
 LANGUAGE plpgsql AS $$
 BEGIN
-	INSERT INTO faculty(faculty_name) VALUES (input_name);
+	INSERT INTO faculty(faculty_name, teacher_count) VALUES (input_name, 0);
 END; $$
 
 
 
 
 
-CREATE OR REPLACE PROCEDURE add_document(p_name TEXT, p_auth INT, p_pub INT, p_date DATE)------------------------------------------------------------------------------------------
-LANGUAGE sql AS $$
+CREATE OR REPLACE PROCEDURE add_document(p_name TEXT, p_auth TEXT, p_pub TEXT, p_date DATE)
+LANGUAGE plpsql AS $$
 	INSERT INTO archive(publication_name, pub_author, pub_id, publication_date) VALUES (p_name, p_auth, p_pub, p_date);
 $$
 
+CREATE OR REPLACE FUNCTION insert_archive(p_name TEXT, p_auth TEXT, p_pub TEXT, p_date DATE)
+RETURNS VOID
+LANGUAGE plpgsql AS $$
+DECLARE
+	author_id INT;
+	publ_id INT;
+BEGIN
+	author_id = (SELECT teacher_id FROM teacher WHERE p_auth = CONCAT(teacher_name, ' ', teacher_surname));
+	publ_id = (SELECT publisher_id FROM publisher WHERE p_pub = pub_name);
+	INSERT INTO archive(publication_name, pub_author, pub_id, publication_date) VALUES (p_name, author_id, publ_id, p_date);
+END; $$
+select * from archive
+select * from publisher
+select * from teacher;
 
+select * from insert_archive('asdlkf', 'Гнилетруп Сухостой', 'Иваникс', '05.11.2003')
+SELECT * FROM insert_archive('asdf', 'Виктор Викторович', 'Иваникс', '07.05.2000');
 
-CREATE OR REPLACE FUNCTION strong_insert(user_login TEXT, passwd TEXT, user_role TEXT)------------------------------------------------------------------------------------------
+GRANT usage ON SEQUENCE archive_publication_id_seq TO teacher;
+GRANT usage ON SEQUENCE docum_plan_doc_id_seq TO teacher;
+GRANT usage ON SEQUENCE faculty_faculty_id_seq TO teacher;
+GRANT usage ON SEQUENCE publisher_publisher_id_seq TO teacher;
+
+CREATE OR REPLACE FUNCTION strong_insert(user_login TEXT, passwd TEXT, user_role TEXT)
 RETURNS INT
 LANGUAGE plpgsql AS $$
 BEGIN
@@ -241,11 +262,19 @@ BEGIN
 	INSERT INTO users(username, passw, user_role) VALUES (user_login, passwd, user_role);
 	RETURN 0;
 END; $$
+select * from publisher;
+select * from insert_publisher('Виктор Петрович', 'Ул. Кожемякина д.22', 'Звезда');
+
+CREATE OR REPLACE FUNCTION insert_publisher(gen_man TEXT, addr TEXT, p_name TEXT)
+RETURNS VOID
+LANGUAGE sql AS $$
+	INSERT INTO publisher(general_manager, address, pub_name) VALUES (gen_man, addr, p_name);
+$$
 
 
 
 --------------------------------------------------END INSERT FUNCTIONS----------------------------------------------
-
+select * from update_faculty_func('КБ-4', 'КБ-5');
 
 --------------------------------------------------START UPDATE FUNCTIONS-------------------------------------------------
 
@@ -254,7 +283,7 @@ AFTER INSERT ON teacher
 FOR EACH ROW
 EXECUTE PROCEDURE update_faculty();
 
-CREATE OR REPLACE FUNCTION update_faculty()------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION update_faculty()
 RETURNS trigger AS $$
 DECLARE
 	in_id INT;
@@ -285,7 +314,7 @@ CREATE RULE delete_view AS ON DELETE TO teacher_view DO INSTEAD(
     SELECT delete_teacher(OLD));------------------------------------------------------------------------------------------
 
 
-CREATE OR REPLACE FUNCTION delete_teacher(old_table teacher_view)
+CREATE OR REPLACE FUNCTION delete_teacher(old_table teacher_view)------------------------------------------------------------------
 RETURNS VOID
 LANGUAGE plpgsql AS $$
 BEGIN
@@ -296,7 +325,7 @@ END; $$
 
 select * from teacher;
 
-CREATE OR REPLACE FUNCTION delete_teacher_view(t_name TEXT, t_surname TEXT, f_name TEXT, t_age INT)
+CREATE OR REPLACE FUNCTION delete_teacher_view(t_name TEXT, t_surname TEXT, f_name TEXT, t_age INT)-------------------------------------------------------------
 RETURNS VOID
 LANGUAGE plpgsql AS $$
 BEGIN
@@ -323,7 +352,7 @@ select * from teacher_view;
 
 
 
-CREATE OR REPLACE FUNCTION insert_teacher_view(new_name TEXT, new_surname TEXT, new_faculty TEXT, new_age INT)
+CREATE OR REPLACE FUNCTION insert_teacher_view(new_name TEXT, new_surname TEXT, new_faculty TEXT, new_age INT)-----------------------------------------------------------
 RETURNS VOID
 LANGUAGE plpgsql AS $$
 DECLARE
@@ -364,7 +393,7 @@ LANGUAGE plpgsql;
 
 drop function update_teacher_view;
 
-CREATE OR REPLACE FUNCTION update_teacher_view(old_name TEXT, old_surname TEXT, old_faculty TEXT, new_name TEXT, new_surname TEXT, new_faculty TEXT, new_age INT)------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION update_teacher_view(old_name TEXT, old_surname TEXT, old_faculty TEXT, new_name TEXT, new_surname TEXT, new_faculty TEXT, new_age INT)
 RETURNS VOID
 LANGUAGE plpgsql AS $$
 DECLARE
@@ -412,7 +441,7 @@ BEGIN
 	END LOOP;
 END; $$
 
-CREATE OR REPLACE FUNCTION get_author_id(fio TEXT)------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION get_author_id(fio TEXT)
 RETURNS INT
 LANGUAGE plpgsql AS $$
 DECLARE
@@ -435,7 +464,7 @@ select * from publisher;
 SELECT * FROM get_publisher();
 
 drop function update_archive;
-CREATE OR REPLACE FUNCTION update_archive(old_name TEXT, new_name TEXT, new_date DATE, new_publisher TEXT, new_author TEXT)------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION update_archive(old_name TEXT, new_name TEXT, new_date DATE, new_publisher TEXT, new_author TEXT)
 RETURNS INT
 LANGUAGE plpgsql AS $$
 DECLARE
@@ -462,8 +491,8 @@ select * from teacher;
 SELECT * FROM update_archive('Работа номер 1', 'Работа номер 2', '07.08.2003', 'Иваникс', 'Гнилетруп Сухостой');
 
 SELECT * FROM show_docum_plan()
-
-CREATE OR REPLACE FUNCTION update_docum_plan(old_author TEXT, new_author TEXT, new_date DATE, new_name TEXT)------------------------------------------------------------------------------------------
+drop function update_docum_plan;
+CREATE OR REPLACE FUNCTION update_docum_plan(old_author TEXT, new_date DATE, new_name TEXT)
 RETURNS INT
 LANGUAGE plpgsql AS $$
 DECLARE
@@ -472,43 +501,51 @@ DECLARE
 	new_teacher_id INT;
 BEGIN 
 	t_id = (SELECT teacher_id FROM teacher WHERE CONCAT(teacher_name, ' ', teacher_surname) = old_author);
-	new_teacher_id = (SELECT teacher_id FROM teacher WHERE CONCAT(teacher_name, ' ', teacher_surname) = new_author);
 	table_id = (SELECT doc_id FROM docum_plan WHERE t_id = author_id);
-	IF t_id IS NOT NULL AND new_teacher_id IS NOT NULL THEN
-		UPDATE docum_plan SET doc_name = new_name, last_mod = new_date, author_id = new_teacher_id WHERE doc_id = table_id;
+	IF t_id IS NOT NULL THEN
+		UPDATE docum_plan SET doc_name = new_name, last_mod = new_date WHERE doc_id = table_id;
 		RETURN 0;
 	END IF;
 	RETURN -1;
 END; $$
 
-select * from update_docum_plan('Компот Яблочный', 'Компот Яблочный', '11.10.2005', 'А теперь не я');
+select * from update_docum_plan('Компот Яблочный', '12.10.2005', 'А теперь не я');
+
 
 ---------------------------------------------------END UPDATE FUNCTIONS-----------------------------------------------------
 
 
 
 -----------------------------------------------------START DELETE FUNCTIONS------------------------------------------------------
-CREATE OR REPLACE FUNCTION delete_archive(delete_name TEXT)------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION delete_archive(delete_name TEXT)
 RETURNS VOID
 LANGUAGE plpgsql AS $$
 BEGIN
-	DELETE FROM archive WHERE publications_name = delete_name;
+	DELETE FROM archive WHERE publication_name = delete_name;
 END; $$
 
+delete from faculty where faculty_name = 'hahahah'
 
-
-
-CREATE OR REPLACE FUNCTION delete_docum_plan(delete_name TEXT)------------------------------------------------------------------------------------------
+select * from archive
+select * from delete_archive('привет');
+select * from 
+CREATE OR REPLACE FUNCTION delete_docum_plan(delete_name TEXT)
 RETURNS VOID
 LANGUAGE plpgsql AS $$
 BEGIN
-	UPDATE teacher SET doc_in_process = false WHERE (SELECT author_id FROM docum_plan WHERE doc_name = delete_name) = teacher_id;
+	UPDATE teacher SET doc_in_process = 'false' WHERE (SELECT author_id FROM docum_plan WHERE doc_name = delete_name) = teacher_id;
 	DELETE FROM docum_plan WHERE doc_name = delete_name;
 END; $$
 
 select * from student;
 
-CREATE OR REPLACE FUNCTION delete_faculty(delete_name TEXT)------------------------------------------------------------------------------------------
+select * from delete_faculty('КБ-3')
+
+
+
+
+
+CREATE OR REPLACE FUNCTION delete_faculty(delete_name TEXT)
 RETURNS INT
 LANGUAGE plpgsql AS $$
 BEGIN
@@ -523,7 +560,13 @@ select * from teacher
 CREATE VIEW teacher_view AS SELECT teacher_name, teacher_surname, faculty.faculty_name, teacher_age FROM teacher LEFT JOIN faculty ON faculty.faculty_id = teacher.teacher_faculty;
 select * from teacher_view;
 drop view teacher_view;
-CREATE OR REPLACE FUNCTION delete_publisher(delete_name TEXT)------------------------------------------------------------------------------------------
+
+select * from delete_publisher('asdf')
+SELECT COUNT(*) FROM archive WHERE pub_author = (SELECT publisher_id FROM publisher WHERE pub_name = 'asdf');
+select * from publisher;
+select * from archive;
+
+CREATE OR REPLACE FUNCTION delete_publisher(delete_name TEXT)
 RETURNS INT
 LANGUAGE plpgsql AS $$
 BEGIN
@@ -537,7 +580,7 @@ END; $$
 
 select * from docum_plan;
 
-CREATE OR REPLACE FUNCTION delete_teacher(delete_name TEXT, delete_surname TEXT, delete_faculty INT)------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION delete_teacher(delete_name TEXT, delete_surname TEXT, delete_faculty INT)
 RETURNS INT
 LANGUAGE plpgsql AS $$
 DECLARE
@@ -555,7 +598,7 @@ END; $$
 
 
 
-CREATE OR REPLACE FUNCTION delete_student(delete_name TEXT, delete_surname TEXT, delete_faculty INT)------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION delete_student(delete_name TEXT, delete_surname TEXT, delete_faculty INT
 RETURNS VOID
 LANGUAGE plpgsql AS $$
 BEGIN
@@ -590,10 +633,12 @@ REVOKE teacher FROM administrator;
 GRANT INSERT ON docum_plan TO teacher;
 GRANT UPDATE ON docum_plan TO teacher;
 GRANT SELECT ON docum_plan TO teacher;
-
+									  
+GRANT SELECT ON archive TO 
+GRANT SELECT ON archive, docum_plan, student, teacher, publisher, faculty TO administrator;
 GRANT INSERT ON archive, docum_plan, student, teacher, publisher, faculty TO administrator;
 GRANT UPDATE ON archive, docum_plan, student, teacher, publisher, faculty TO administrator;
-
+GRANT DELETE ON archive, docum_plan, student, teacher, publisher, faculty TO administrator;
 CREATE ROLE superuser LOGIN PASSWORD 'forstudy';
 
 GRANT administrator TO superuser;
@@ -629,7 +674,7 @@ select * from show_archive()
 
 DROP FUNCTION check_faculty;
 
-CREATE OR REPLACE FUNCTION check_faculty(t_name TEXT, t_surname TEXT, t_faculty TEXT)------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION check_faculty(t_name TEXT, t_surname TEXT, t_faculty TEXT)
 RETURNS INT
 LANGUAGE plpgsql AS $$
 BEGIN
@@ -651,7 +696,7 @@ select * from teacher as hi;
 
 DROP FUNCTION get_tables;
 
-CREATE OR REPLACE FUNCTION get_tables()------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION get_tables()
 RETURNS table("AGA" TEXT, "OGO" TEXT)
 LANGUAGE plpgsql AS $$
 DECLARE
@@ -830,7 +875,7 @@ END; $$
 LANGUAGE plpgsql;
 
 DROP FUNCTION get_authors;
-CREATE OR REPLACE FUNCTION get_authors()------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION get_authors()
 RETURNS table("ФИО автора" TEXT) AS $$
 	SELECT CONCAT(teacher_name, ' ', teacher_surname) FROM teacher;
 $$
@@ -922,7 +967,7 @@ GRANT SELECT ON publisher TO user_1;
 SELECT * FROM users;
 DROP FUNCTION user_auth;
 
-CREATE OR REPLACE FUNCTION user_auth(user_login TEXT, passwd TEXT)------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION user_auth(user_login TEXT, passwd TEXT)
 RETURNS INT
 LANGUAGE plpgsql AS $$
 DECLARE
@@ -942,7 +987,7 @@ SELECT * FROM user_auth('a', 'a');
 
 DROP FUNCTION role_auth;
 
-CREATE OR REPLACE FUNCTION role_auth(user_name TEXT, u_password TEXT)------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION role_auth(user_name TEXT, u_password TEXT)
 RETURNS TEXT
 LANGUAGE plpgsql AS $$
 BEGIN
@@ -984,7 +1029,7 @@ CREATE OR REPLACE FUNCTION show_from()------------------------------------------
 RETURNS table("Название" TEXT, "Адрес" TEXT)
 LANGUAGE plpgsql AS $$
 BEGIN
-	RETURN QUERY SELECT * FROM (SELECT pub_name, address FROM publisher) foo;
+	RETURN QUERY SELECT pub_name, address FROM (SELECT * FROM publisher) foo;
 END; $$
 
 SELECT * FROM show_from();
@@ -1052,7 +1097,17 @@ CREATE INDEX archive_date_index ON archive USING btree(publication_date);-------
 CREATE EXTENSION pg_trgm;
 ------------------------------------------------------------------------------------------
 
+select * from faculty;
+drop function having_function;
+CREATE OR REPLACE FUNCTION having_function()
+RETURNS table("Название факультета" TEXT, "Количество преподавателей" INT)
+LANGUAGE plpgsql AS $$
+BEGIN
+	RETURN QUERY SELECT faculty_name, max(teacher_count) FROM faculty GROUP BY faculty_name HAVING max(teacher_count) > 3;
 
+END; $$
+
+SELECT * FROM having_function();
 
 select * from student
 
