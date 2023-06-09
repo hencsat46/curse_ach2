@@ -162,6 +162,28 @@ BEGIN
 	INSERT INTO student(student_name, student_surname, student_faculty, student_age) VALUES (s_name, s_surname, s_faculty, s_age);
 END; $$
 
+select * from faculty
+
+CREATE OR REPLACE FUNCTION shit()
+RETURNS VOID
+LANGUAGE plpgsql AS $$
+DECLARE
+	hi INT;
+BEGIN
+	FOR hi IN 1..100
+		LOOP
+			--select * from insert_student('a', 'b', 1, 12);
+			INSERT INTO faculty(faculty_name, teacher_count) VALUES ('hahahah', 6);
+		END LOOP;
+	RETURN;
+		
+		
+END; $$
+
+select * from faculty;
+
+SELECT * FROM shit();
+
 
 CREATE OR REPLACE PROCEDURE insert_docum_plan(d_name TEXT, l_mode DATE, t_name TEXT)------------------------------------------------------------------------------------------
 LANGUAGE plpgsql AS $$
@@ -567,6 +589,7 @@ REVOKE teacher FROM administrator;
 
 GRANT INSERT ON docum_plan TO teacher;
 GRANT UPDATE ON docum_plan TO teacher;
+GRANT SELECT ON docum_plan TO teacher;
 
 GRANT INSERT ON archive, docum_plan, student, teacher, publisher, faculty TO administrator;
 GRANT UPDATE ON archive, docum_plan, student, teacher, publisher, faculty TO administrator;
@@ -577,6 +600,9 @@ GRANT administrator TO superuser;
 GRANT INSERT ON users TO superuser;
 GRANT UPDATE ON users TO superuser;
 GRANT SELECT ON users TO superuser;
+
+select * from users
+
 
 
 ---------------------------------------------------------END ROLES-----------------------------------------------------
@@ -903,16 +929,16 @@ DECLARE
 	status INT;
 BEGIN
 	IF (SELECT COUNT(*) FROM users WHERE username = user_login AND passw = passwd) = 1 THEN
-		status = 1;
-	ELSE
 		status = 0;
+	ELSE
+		status = -1;
 	END IF;
 
 	
 	RETURN status;
 
 END; $$
-SELECT * FROM user_auth('e.kashkin', 'hahaha');
+SELECT * FROM user_auth('a', 'a');
 
 DROP FUNCTION role_auth;
 
@@ -988,7 +1014,7 @@ END; $$
 
 SELECT * FROM show_select();
 --SELECT * FROM archive;
-
+select * from users;
 
 select * from student;
 
@@ -999,13 +1025,38 @@ BEGIN
 	SELECT CONCAT(s.student_name, ' ', s.student_surname), (SELECT f.faculty_name FROM faculty f WHERE f.faculty_id = s.student_faculty), s.student_age FROM student s WHERE student_age > ALL (SELECT teacher_age FROM teacher);
 END; $$
 
+CREATE OR REPLACE FUNCTION show_any_student()
+RETURNS table("ФИО студента" TEXT, "Факультет студента" TEXT, "Возраст студента" INT)
+LANGUAGE plpgsql AS $$
+BEGIN
+	RETURN QUERY SELECT CONCAT(s.student_name, ' ', s.student_surname), (SELECT f.faculty_name FROM faculty f WHERE f.faculty_id = s.student_faculty), s.student_age FROM student s WHERE student_age > ANY (SELECT teacher_age FROM teacher);
+END; $$
+
+SELECT * FROM show_any_student();
+
+select * from archive
+
 DROP INDEX student_age_index;
 DROP INDEX archive_date_index;
 DROP INDEX faculty_faculty_index;
-CREATE INDEX student_age_index ON student USING hash(student_age);------------------------------------------------------------------------------------------
+
+
+SET enable_seqscan = OFF;
+SET enable_indexscan = ON;
+CREATE INDEX faculty_faculty_index ON faculty USING gin(faculty_name gin_trgm_ops);
+
+EXPLAIN analyse select faculty_name from faculty where faculty_name LIKE 'a';
+
+CREATE INDEX student_age_index ON student USING brin(student_age);------------------------------------------------------------------------------------------
 CREATE INDEX archive_date_index ON archive USING btree(publication_date);------------------------------------------------------------------------------------------
 CREATE EXTENSION pg_trgm;
-CREATE INDEX faculty_faculty_index ON faculty USING gin(faculty_name gin_trgm_ops);------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+
+
+select * from student
+
+
 
 DROP FUNCTION update_teacher(TEXT, TEXT);
 

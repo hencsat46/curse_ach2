@@ -15,7 +15,12 @@ void Widget::login() {
         {
 
         QSqlDatabase db = QSqlDatabase::addDatabase("QPSQL", "superuser_connection_table");
-        bool status = start_db_superuser(db);
+        db.setHostName("localhost");
+        db.setDatabaseName("curse_ach");
+        db.setUserName("superuser");
+        db.setPassword("forstudy");
+        bool status = db.open();
+        qDebug() << "SELECT * FROM user_auth(\'" + username + "\', \'" + password + "\');";
         QSqlQuery query = QSqlQuery(db);
         if (status) {
             query.exec("SELECT * FROM user_auth(\'" + username + "\', \'" + password + "\');");

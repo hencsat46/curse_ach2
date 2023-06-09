@@ -7,6 +7,8 @@ Edit_archive::Edit_archive(QWidget *parent) : QWidget(parent), ui(new Ui::Edit_a
 
 
     connect(ui->ea_save_button, SIGNAL(clicked()), this, SLOT(save_data()));
+    connect(ui->ea_add_button, SIGNAL(clicked()), this, SLOT(add_data()));
+    connect(ui->ea_delete_button, SIGNAL(clicked()), this, SLOT(delete_data()));
 }
 
 Edit_archive::~Edit_archive() {
@@ -45,7 +47,39 @@ void Edit_archive::get_teacher(QString pub_name, QString temp_role) {
 }
 
 
+void Edit_archive::add_data() {
+    QString name = ui->ea_name_edit->text();
+    QString publisher = ui->ea_publisher_box->currentText();
+    QString date = ui->ea_date_edit->text();
+    QString author = ui->ea_teacher_box->currentText();
+    int author_id;
+    {
+        QSqlDatabase db = QSqlDatabase::addDatabase("QPSQL", role + "_edit_" + "_connection");
+        db.setHostName("localhost");
+        db.setDatabaseName("curse_ach");
+        db.setUserName(role);
+        db.setPassword("administrator");
+        bool status = db.open();
+        qDebug() << role;
+        if (status) {
+            QSqlQuery query = QSqlQuery(db);
+            query.exec("SELECT * FROM get_author_id('" + author + "');");
+            query.next();
+            author_id = query.value(0).toInt();
 
+            query.exec("SELECT * FROM insert_archive('" + name + "', '" + author + "', '" + publisher
+                       + "', '" + date + "');");
+
+            qDebug() << "SELECT * FROM insert_archive('" + name + "', '" + author + "', '" + publisher
+                            + "', '" + date + "');";
+
+
+        }
+
+    }
+
+    close_db(role + "_edit_" + "_connection");
+}
 
 void Edit_archive::close_db(QString connection_name) {
     {
@@ -80,8 +114,10 @@ void Edit_archive::save_data() {
 
             query.exec("SELECT * FROM update_archive('" + old_name + "', '" + name + "', '" + date + "', '" + publisher
                        + "', '" + author + "');");
+
             //qDebug() << "SELECT * FROM update_archive('" + old_name + "', '" + name + "', '" + date + "', '" + publisher
               //              + "', '" + author + "');";
+
 
         }
 
@@ -91,6 +127,28 @@ void Edit_archive::save_data() {
 
     qDebug() << QSqlDatabase::connectionNames();
 
+}
+
+void Edit_archive::delete_data() {
+
+
+    {
+        QSqlDatabase db = QSqlDatabase::addDatabase("QPSQL", role + "_edit_" + "_connection");
+        db.setHostName("localhost");
+        db.setDatabaseName("curse_ach");
+        db.setUserName(role);
+        db.setPassword("administrator");
+        bool status = db.open();
+        qDebug() << role;
+        if (status) {
+            QSqlQuery query = QSqlQuery(db);
+            query.exec("select * from delete_archive('" + old_name + "');");
+
+        }
+
+    }
+
+    close_db(role + "_edit_" + "_connection");
 }
 
 void Edit_archive::get_publisher() {

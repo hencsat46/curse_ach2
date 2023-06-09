@@ -29,7 +29,7 @@
   <widget class="QPushButton" name="ea_cancel_button">
    <property name="geometry">
     <rect>
-     <x>570</x>
+     <x>120</x>
      <y>540</y>
      <width>88</width>
      <height>31</height>
@@ -166,6 +166,19 @@
      <width>191</width>
      <height>25</height>
     </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="ea_add_button">
+   <property name="geometry">
+    <rect>
+     <x>570</x>
+     <y>540</y>
+     <width>88</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Добавить</string>
    </property>
   </widget>
  </widget>

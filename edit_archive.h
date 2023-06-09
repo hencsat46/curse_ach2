@@ -29,6 +29,8 @@ private:
 
 public slots:
     void save_data();
+    void add_data();
+    void delete_data();
 };
 
 #endif // EDIT_ARCHIVE_H

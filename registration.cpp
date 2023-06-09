@@ -29,7 +29,11 @@ void Widget::registration() {
 
     {
         QSqlDatabase db = QSqlDatabase::addDatabase("QPSQL", "superuser_connection");
-        bool status = start_db_superuser(db);
+        db.setHostName("localhost");
+        db.setDatabaseName("curse_ach");
+        db.setUserName("superuser");
+        db.setPassword("forstudy");
+        bool status = db.open();
         QSqlQuery query = QSqlQuery(db);
         //qDebug() << status;
         if (status) {
@@ -82,13 +86,6 @@ void Widget::box_changed() {
     ui->r_faculty_widget->hide();
 }
 
-bool Widget::start_db_superuser(QSqlDatabase db) {
-    db.setHostName("localhost");
-    db.setDatabaseName("curse_ach");
-    db.setUserName("superuser");
-    db.setPassword("forstudy");
-    return db.open();
-}
 
 bool Widget::wrong_code(int role, QString code) {
     if ((role == 1 && code != "1234") || (role == 2 && code != "4321")) return true ;
