@@ -13,6 +13,7 @@ SOURCES += \
     edit_docum_plan.cpp \
     edit_faculty.cpp \
     edit_pub.cpp \
+    edit_teacher.cpp \
     login.cpp \
     main.cpp \
     registration.cpp \
@@ -23,6 +24,7 @@ HEADERS += \
     edit_docum_plan.h \
     edit_faculty.h \
     edit_pub.h \
+    edit_teacher.h \
     widget.h
 
 FORMS += \
@@ -30,6 +32,7 @@ FORMS += \
     edit_docum_plan.ui \
     edit_faculty.ui \
     edit_pub.ui \
+    edit_teacher.ui \
     widget.ui
 
 # Default rules for deployment.
