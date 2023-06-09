@@ -253,11 +253,68 @@ END; $$
 
 
 
-CREATE VIEW teacher_view AS SELECT t.teacher_id, t.teacher_name, t.teacher_surname, f.faculty_name FROM teacher t------------------------------------------------------------------------------------------
-	LEFT JOIN faculty f ON t.teacher_faculty = f.faculty_id;
 
-CREATE RULE update_view AS ON UPDATE TO teacher_view DO INSTEAD(
-    SELECT update_teacher(OLD, NEW));------------------------------------------------------------------------------------------
+CREATE RULE insert_view AS ON INSERT TO teacher_view DO INSTEAD(
+    SELECT insert_teacher(NEW));
+	
+
+	
+CREATE RULE delete_view AS ON DELETE TO teacher_view DO INSTEAD(
+    SELECT delete_teacher(OLD));------------------------------------------------------------------------------------------
+
+
+CREATE OR REPLACE FUNCTION delete_teacher(old_table teacher_view)
+RETURNS VOID
+LANGUAGE plpgsql AS $$
+BEGIN
+	DELETE FROM teacher WHERE teacher_name = old_table.teacher_name AND teacher_surname = old_table.teacher_surname AND teacher_age = old_table.teacher_age;
+END; $$
+
+
+
+select * from teacher;
+
+CREATE OR REPLACE FUNCTION delete_teacher_view(t_name TEXT, t_surname TEXT, f_name TEXT, t_age INT)
+RETURNS VOID
+LANGUAGE plpgsql AS $$
+BEGIN
+	DELETE FROM teacher_view WHERE t_name = teacher_name AND teacher_surname = t_surname AND f_name = faculty_name AND t_age = teacher_age;
+END; $$
+
+
+CREATE OR REPLACE FUNCTION insert_teacher(new_table teacher_view)
+RETURNS VOID
+LANGUAGE plpgsql AS $$
+DECLARE
+	table_id INT;
+BEGIN
+	table_id = (SELECT faculty_id FROM faculty WHERE faculty_name = new_table.faculty_name);
+	INSERT INTO teacher(teacher_name, teacher_surname, teacher_faculty, teacher_age, doc_in_process)
+	VALUES (new_table.teacher_name, new_table.teacher_surname, table_id, new_table.teacher_age, 'false');
+END; $$
+
+select * from insert_teacher_view('Негр', 'Плакатов', 'КБ-4', '27');
+select * from delete_teacher_view('Негр', 'Плакатов', 'КБ-4', '27');
+
+select * from teacher_view;
+
+
+
+
+CREATE OR REPLACE FUNCTION insert_teacher_view(new_name TEXT, new_surname TEXT, new_faculty TEXT, new_age INT)
+RETURNS VOID
+LANGUAGE plpgsql AS $$
+DECLARE
+	table_id INT;
+BEGIN
+	table_id = (SELECT faculty_id FROM faculty WHERE new_faculty = faculty_name);
+	INSERT INTO teacher_view(teacher_name, teacher_surname, faculty_name, teacher_age) VALUES (new_name, new_surname, new_faculty, new_age);
+	
+END; $$
+
+drop view teacher_view cascade;
+
+SELECT * FROM teacher_view;
 
 CREATE OR REPLACE FUNCTION update_teacher(old_table teacher_view, new_table teacher_view)------------------------------------------------------------------------------------------
 RETURNS INT AS $$
@@ -267,6 +324,7 @@ BEGIN
 	UPDATE teacher
 		SET teacher_name = new_table.teacher_name,
 		teacher_surname = new_table.teacher_surname,
+		teacher_age = new_table.age
 		WHERE teacher_id = old_table.teacher_id;
 		
 	IF new_table.faculty_name IN (SELECT faculty_name FROM faculty) AND new_table.faculty_name IS NOT NULL THEN
@@ -282,20 +340,29 @@ END; $$
 LANGUAGE plpgsql;
 
 
-CREATE OR REPLACE FUNCTION update_teacher_view(old_name TEXT, old_surname TEXT, old_faculty TEXT, new_name TEXT, new_surname TEXT, new_faculty TEXT)------------------------------------------------------------------------------------------
+drop function update_teacher_view;
+
+CREATE OR REPLACE FUNCTION update_teacher_view(old_name TEXT, old_surname TEXT, old_faculty TEXT, new_name TEXT, new_surname TEXT, new_faculty TEXT, new_age INT)------------------------------------------------------------------------------------------
 RETURNS VOID
 LANGUAGE plpgsql AS $$
 DECLARE
 	table_id INT;
 BEGIN
 	table_id = (SELECT teacher_id FROM teacher_view WHERE old_name = teacher_name AND teacher_surname = old_surname AND old_faculty = faculty_name);
-	UPDATE teacher_view SET teacher_name = new_name, teacher_surname = new_surname, faculty_name = new_faculty WHERE teacher_id = table_id;
+	UPDATE teacher_view SET teacher_name = new_name, teacher_surname = new_surname, faculty_name = new_faculty, teacher_age = new_age WHERE teacher_id = table_id;
 END; $$
 
 
+CREATE RULE update_view AS ON UPDATE TO teacher_view DO INSTEAD(
+    SELECT update_teacher(OLD, NEW));
 
 
 
+
+
+select * from insert_teacher_view('Пармон', 'Хиджи', )
+
+select * from teacher;
 CREATE OR REPLACE PROCEDURE upgrade_status(a_id INT)------------------------------------------------------------------------------------------
 LANGUAGE plpgsql AS $$
 BEGIN
@@ -430,8 +497,10 @@ BEGIN
 		RETURN 0;
 	END IF;
 END; $$
-
-
+select * from teacher
+CREATE VIEW teacher_view AS SELECT teacher_name, teacher_surname, faculty.faculty_name, teacher_age FROM teacher LEFT JOIN faculty ON faculty.faculty_id = teacher.teacher_faculty;
+select * from teacher_view;
+drop view teacher_view;
 CREATE OR REPLACE FUNCTION delete_publisher(delete_name TEXT)------------------------------------------------------------------------------------------
 RETURNS INT
 LANGUAGE plpgsql AS $$
@@ -930,10 +999,13 @@ BEGIN
 	SELECT CONCAT(s.student_name, ' ', s.student_surname), (SELECT f.faculty_name FROM faculty f WHERE f.faculty_id = s.student_faculty), s.student_age FROM student s WHERE student_age > ALL (SELECT teacher_age FROM teacher);
 END; $$
 
-
-CREATE INDEX student_age_index ON student(student_age);------------------------------------------------------------------------------------------
-CREATE INDEX archive_date_index ON archive(publication_date);------------------------------------------------------------------------------------------
-CREATE INDEX faculty_faculty_index ON faculty(faculty_name);------------------------------------------------------------------------------------------
+DROP INDEX student_age_index;
+DROP INDEX archive_date_index;
+DROP INDEX faculty_faculty_index;
+CREATE INDEX student_age_index ON student USING hash(student_age);------------------------------------------------------------------------------------------
+CREATE INDEX archive_date_index ON archive USING btree(publication_date);------------------------------------------------------------------------------------------
+CREATE EXTENSION pg_trgm;
+CREATE INDEX faculty_faculty_index ON faculty USING gin(faculty_name gin_trgm_ops);------------------------------------------------------------------------------------------
 
 DROP FUNCTION update_teacher(TEXT, TEXT);
 
