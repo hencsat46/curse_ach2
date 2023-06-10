@@ -375,13 +375,13 @@ BEGIN
 	UPDATE teacher
 		SET teacher_name = new_table.teacher_name,
 		teacher_surname = new_table.teacher_surname,
-		teacher_age = new_table.age
+		teacher_age = new_table.teacher_age
 		WHERE teacher_id = old_table.teacher_id;
 		
 	IF new_table.faculty_name IN (SELECT faculty_name FROM faculty) AND new_table.faculty_name IS NOT NULL THEN
 		temp_faculty = (SELECT faculty_id FROM faculty WHERE new_table.faculty_name = faculty.faculty_name);
 		UPDATE teacher
-		SET teacher_faculty = temp_faculty;
+		SET teacher_faculty = temp_faculty WHERE teacher_id = old_table.teacher_id;
 		
 	ELSE 
 		RETURN -1;
@@ -390,8 +390,12 @@ BEGIN
 END; $$
 LANGUAGE plpgsql;
 
+select * from teacher_view;
 
 drop function update_teacher_view;
+
+SELECT * FROM update_teacher_view('Гнилетруп', 'Сухостой', 'КБ-6', 'Виктор', 'Деволов', 'КБ-6', 22);
+SELECT * FROM update_teacher_view('Компот', 'Яблочный', 'КБ-6', 'Данил', 'Григорьев', 'КБ-4', 23);
 
 CREATE OR REPLACE FUNCTION update_teacher_view(old_name TEXT, old_surname TEXT, old_faculty TEXT, new_name TEXT, new_surname TEXT, new_faculty TEXT, new_age INT)
 RETURNS VOID
@@ -557,9 +561,9 @@ BEGIN
 	END IF;
 END; $$
 select * from teacher
-CREATE VIEW teacher_view AS SELECT teacher_name, teacher_surname, faculty.faculty_name, teacher_age FROM teacher LEFT JOIN faculty ON faculty.faculty_id = teacher.teacher_faculty;
+CREATE VIEW teacher_view AS SELECT teacher_id, teacher_name, teacher_surname, faculty.faculty_name, teacher_age FROM teacher LEFT JOIN faculty ON faculty.faculty_id = teacher.teacher_faculty;
 select * from teacher_view;
-drop view teacher_view;
+drop view teacher_view CASCADE;
 
 select * from delete_publisher('asdf')
 SELECT COUNT(*) FROM archive WHERE pub_author = (SELECT publisher_id FROM publisher WHERE pub_name = 'asdf');
@@ -639,6 +643,10 @@ GRANT SELECT ON archive, docum_plan, student, teacher, publisher, faculty TO adm
 GRANT INSERT ON archive, docum_plan, student, teacher, publisher, faculty TO administrator;
 GRANT UPDATE ON archive, docum_plan, student, teacher, publisher, faculty TO administrator;
 GRANT DELETE ON archive, docum_plan, student, teacher, publisher, faculty TO administrator;
+GRANT SELECT ON teacher_view TO administrator;
+GRANT UPDATE ON teacher_view TO administrator;
+GRANT INSERT ON teacher_view TO administrator;
+GRANT DELETE ON teacher_view TO administrator;
 CREATE ROLE superuser LOGIN PASSWORD 'forstudy';
 
 GRANT administrator TO superuser;

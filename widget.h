@@ -18,6 +18,7 @@
 #include "edit_docum_plan.h"
 #include "edit_faculty.h"
 #include "edit_pub.h"
+#include "edit_teacher.h"
 #include <QSqlRecord>
 #include <QSqlField>
 #include <QVariant>
@@ -55,6 +56,7 @@ private:
     Edit_docum_plan docum_plan;
     Edit_faculty faculty;
     Edit_pub publisher;
+    Edit_teacher teacher;
     QModelIndex table_index;
 
 

@@ -212,6 +212,14 @@ void Widget::show_edit_archive() {
         publisher.show();
         publisher.get_teacher(table_id, role);
         break;
+    case 4:
+        table_id = ui->w_table->model()->data(table_index.siblingAtRow(table_index.row()).siblingAtColumn(0)).toString();
+        QString table_id2 = ui->w_table->model()->data(table_index.siblingAtRow(table_index.row()).siblingAtColumn(1)).toString();
+        QString table_id3 = ui->w_table->model()->data(table_index.siblingAtRow(table_index.row()).siblingAtColumn(2)).toString();
+
+        teacher.show();
+        teacher.get_teacher(table_id, table_id2, table_id3, role);
+        break;
     }
 
 
